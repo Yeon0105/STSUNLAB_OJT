@@ -20,7 +20,7 @@ int my_strcpy(char dest[], char src[])
     // 프로그램 죽지 않도록 예외처리, copy 배열의 최대 크기는 100
     if (len >= 100)
     {
-        printf("입력한 문자열이 너무 길어 my_strcpy 을 출력할 수 없습니다.\n다시 입력하세요.\n");
+        printf("Error, buffer overflowed!\nPlease, input parameter under.\n");
         return -1;
     }
 
@@ -50,8 +50,21 @@ int main(int argc, char *argv[])
     // 지역변수인 copy 배열 0으로 초기화
     char copy[100]={0};
 
+    // argv[1]가 NULL인 경우 예외 처리
+    if (argv[1] == NULL)
+    {
+        printf("Error, Segmentation fault!\nPlease input parameter.\n");
+        return -1;
+    }
+
     // 문자열 복사
-    my_strcpy(copy, argv[1]);
+    int result = my_strcpy(copy, argv[1]);
+
+    // buffer overflow 발생 시 프로그램 종료
+    if(result == -1)
+    {
+        return -1;
+    }
     printf("my_strcpy: %s\n", copy);
 
     // 문자열 뒤집기
