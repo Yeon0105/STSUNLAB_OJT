@@ -4,7 +4,7 @@
 int my_strlen(char str[])
 {
     int len = 0;
-    while(str[len] != '\0')             // str[len]이 \0이 아니면 len 증가하면서 반복
+    while(str[len] != '\0') // str[len]이 \0이 아니면 len 증가하면서 반복
     {
         len++;
     }
@@ -12,14 +12,21 @@ int my_strlen(char str[])
 }
 
 // 문자열 복사 함수
-void my_strcpy(char dest[], char src[])
+int my_strcpy(char dest[], char src[])
 {
     // len는 my_strlen함수를 통해 입력한 문자열의 길이가 담겨있음
     int len = my_strlen(src);
 
-    for (int i = 0; i < len; i++)       // 문자열의 길이만큼 i가 증가하면서 반복
+    // 프로그램 죽지 않도록 예외처리, copy 배열의 최대 크기는 100
+    if (len >= 100)
     {
-        dest[i] = src[i];               // 원본이 사본에 복사
+        printf("입력한 문자열이 너무 길어 my_strcpy 을 출력할 수 없습니다.\n다시 입력하세요.\n");
+        return -1;
+    }
+
+    for (int i = 0; i < len; i++)                  // 문자열의 길이만큼 i가 증가하면서 반복
+    {
+        dest[i] = src[i];                          // 원본이 사본에 복사
     }
 }
 
