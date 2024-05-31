@@ -40,7 +40,8 @@ void my_strrev(char str[])
 
 int main(int argc, char *argv[])
 {
-    char copy[100];
+    // 지역변수인 copy 배열 0으로 초기화
+    char copy[100]={0};
 
     // 문자열 복사
     my_strcpy(copy, argv[1]);
