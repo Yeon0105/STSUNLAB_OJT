@@ -2,15 +2,15 @@
 
 #define LCD_WIDTH    4                       // 가로 4
 #define LCD_HEIGHT   8                       // 세로 8
-#define DRAW_MODE    1
-
+#define DRAW_MODE
 
 int display_buffer[LCD_HEIGHT * LCD_WIDTH];  // display buffer
 
 void fill_display_buffer()
 {
-#if DRAW_MODE
-    // DRAW_MODE 상태라면 조건문 실행
+#ifdef DRAW_MODE
+{
+    // DRAW_MODE 매크로가 정의되어 있으면 조건문 실행
     // 그림 모드 : 'ㄱ' 모양 데이터 삽입
     for (int i = 0; i < LCD_HEIGHT * LCD_WIDTH; i++)
     {
@@ -24,8 +24,9 @@ void fill_display_buffer()
             display_buffer[i] = 0;
         }
     }
+}
 #else
-    // DRAW_MODE 상태가 아니면 조건문 실행
+    // DRAW_MODE 매크로가 정의되어 않으면 조건문 실행
     // 숫자 모드 : 1부터 32까지 채우는 함수
     int number = 1;
     for (int i = 0; i < LCD_HEIGHT * LCD_WIDTH; i++)
