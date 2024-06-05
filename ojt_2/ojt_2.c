@@ -1,11 +1,11 @@
 #include <stdio.h>
 
-#define DRAW_MODE                            // DRAW_MODE 매크로 정의
+//#define DRAW_MODE                            // DRAW_MODE 매크로 정의
 
-#define LCD_WIDTH    4                       // 가로 4
-#define LCD_HEIGHT   8                       // 세로 8
+#define LCD_WIDTH    10                        // 가로 10
+#define LCD_HEIGHT   10                        // 세로 10
 
-int display_buffer[LCD_HEIGHT * LCD_WIDTH];  // display buffer
+int display_buffer[LCD_HEIGHT * LCD_WIDTH];    // display buffer
 
 void fill_display_buffer(void)
 {
@@ -26,11 +26,22 @@ void fill_display_buffer(void)
     }
 #else
     // DRAW_MODE 매크로가 정의되어 않으면 조건문 실행
-    // 숫자 모드 : 1부터 32까지 채우는 함수
-    int number = 1;
-    for (int i = 0; i < (LCD_HEIGHT * LCD_WIDTH); i++)
+    // 숫자 모드 : 최대값이 10,10 이면 0~99 로 출력
+    if(LCD_WIDTH == 10 && LCD_HEIGHT == 10)
     {
-        display_buffer[i] = number++;
+        int number = 0;
+        for (int i = 0; i < (LCD_HEIGHT * LCD_WIDTH); i++)
+        {
+            display_buffer[i] = number++;
+        }
+    }
+    else
+    {
+        int number = 1;
+        for (int i = 0; i < (LCD_HEIGHT * LCD_WIDTH); i++)
+        {
+            display_buffer[i] = number++;
+        }
     }
 #endif
 }
