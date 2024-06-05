@@ -1,9 +1,9 @@
 #include <stdio.h>
 
-//#define DRAW_MODE                            // DRAW_MODE 매크로 
+//#define DRAW_MODE                           // DRAW_MODE 매크로 
 
-#define LCD_WIDTH    10                        // 가로 10
-#define LCD_HEIGHT   10                        // 세로 10
+#define LCD_WIDTH    4                        // 가로 4
+#define LCD_HEIGHT   8                        // 세로 8
 
 int display_buffer[LCD_HEIGHT * LCD_WIDTH];    // display buffer
 
