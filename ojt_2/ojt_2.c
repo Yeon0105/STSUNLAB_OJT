@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-//#define DRAW_MODE                            // DRAW_MODE 매크로 정의
+//#define DRAW_MODE                            // DRAW_MODE 매크로 
 
 #define LCD_WIDTH    10                        // 가로 10
 #define LCD_HEIGHT   10                        // 세로 10
@@ -26,22 +26,10 @@ void fill_display_buffer(void)
     }
 #else
     // DRAW_MODE 매크로가 정의되어 않으면 조건문 실행
-    // 숫자 모드 : 최대값이 10,10 이면 0~99 로 출력
-    if(LCD_WIDTH == 10 && LCD_HEIGHT == 10)
+    // 숫자 모드 : DRAW_MODE가 아닐 때는 항상 00부터 출력
+    for (int i = 0; i < (LCD_HEIGHT * LCD_WIDTH); i++)
     {
-        int number = 0;
-        for (int i = 0; i < (LCD_HEIGHT * LCD_WIDTH); i++)
-        {
-            display_buffer[i] = number++;
-        }
-    }
-    else
-    {
-        int number = 1;
-        for (int i = 0; i < (LCD_HEIGHT * LCD_WIDTH); i++)
-        {
-            display_buffer[i] = number++;
-        }
+        display_buffer[i] = i;
     }
 #endif
 }
