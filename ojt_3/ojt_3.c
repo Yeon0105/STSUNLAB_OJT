@@ -1,3 +1,5 @@
+#define MAX_SIZE 15                         // 입력 제한 매크로 정의
+
 #include <stdio.h>
 #include <stdlib.h>                         // 동적 메모리 할당 함수 사용을 위한 헤더 파일
 
@@ -70,13 +72,13 @@ int get_valid_integer(char *prompt)
     printf("%s", prompt);                                                           // 전달된 문자열 row? 또는 col?
     if ((scanf("%d%c", &value, &c) == 2) && (c == '\n') && (value > 0))             // 2개의 값을 읽어 2를 반환, 문자가 \n, 정수가 양수여야 하는 조건문
     {
-        if((value > 0) &&(value <= 10))                                             // 유효범위 1~10 설정, 최대 10행 10열까지 가능
+        if ((value > 0) &&(value <= MAX_SIZE))                                      // 유효범위 1~MAX_SIZE 설정
         {
             return value;
         }
         else
         {
-            printf("Error, input integer too big!\n");                              // 10 이상 입력 시 에러 출력
+            printf("Error, input integer too big!\n");                              // MAX_SIZE 보다 큰 숫자 입력 시 에러 출력
             return -3;
         }
     }
@@ -92,15 +94,19 @@ int main(void)
     // 사용자로부터 행 입력 받기
     int row = get_valid_integer("row? ");
 
+    // 동적 메모리 체크하는 변수
+    char check_error = 0;
+    int check_index = 0;
+
     // get_valid_integer 함수에서 row의 에러가 발생한 경우 
     if (row < 0)
     {
-        if(row == -3)
+        if (row == -3)
         {
-            printf("Please, row input integer 1~10.\n");
+            printf("Please, row input integer 1~%d.\n", MAX_SIZE);
             return -3;
         }
-        else if(row == -4)
+        else if (row == -4)
         {
             printf("Please, row input positive integer.\n");
             return -4;
@@ -111,14 +117,14 @@ int main(void)
     int col = get_valid_integer("col? ");
 
     // get_valid_integer 함수에서 col의 에러가 발생한 경우
-    if(col < 0)
+    if (col < 0)
     {
-        if(col == -3)
+        if (col == -3)
         {
-            printf("Please, col input integer 1~10.\n");
+            printf("Please, col input integer 1~%d.\n", MAX_SIZE);
             return -3;
         }
-        else if(col == -4)
+        else if (col == -4)
         {
             printf("Please, col input positive integer.\n");
             return -4;
@@ -129,7 +135,7 @@ int main(void)
     int **arr = (int **)malloc(sizeof(int *) * row);
 
     // 동적 메모리 할당 실패 시 오류
-    if( arr == NULL)
+    if (arr == NULL)
     {
         printf("Memory allocation failed.\n");
         return -1;
@@ -140,11 +146,27 @@ int main(void)
         arr[i] = (int *)malloc(sizeof(int) * col);
 
         // 동적 메모리 할당 실패 시 오류
-        if(arr[i] == NULL)
+        if (arr[i] == NULL)
         {
             printf("Memory allocation failed.\n");
-            return -2;
+
+            check_error = 1;
+            check_index = i;
+
+            break;
         }
+    }
+
+    // 동적 메모리 할당 실패 시 free
+    if (check_error)
+    {
+        for (int i=0; i < row; i++)
+        {
+            free(arr[i]);
+        }
+        free(arr);
+
+        return -2;
     }
 
     // 배열을 달팽이 모양으로 채우기
@@ -153,7 +175,7 @@ int main(void)
     // 배열 출력
     print_array(arr, row, col);
 
-    // 동적 메모리 해제
+    // 정상적으로 실행 된 동적 메모리에 대한 free
     for (int i = 0; i < row; i++)
     {
         free(arr[i]);
