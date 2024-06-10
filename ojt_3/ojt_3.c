@@ -4,30 +4,30 @@
 // 달팽이 배열을 채우는 함수
 void fill_spiral_array(int **arr, int row, int col)
 {
-    int num    = 0;                         // 배열에 채울 숫자
-    int x      = 0;                         // 현재 위치를 나타냄, [0][y]
-    int y      = -1;                        // 현재 위치를 나타냄, [x][-1]
-    int target = 1;                         // 방향을 나타내는 변수, 1이면 오른쪽 또는 아래, -1이면 왼쪽 또는 위로 이동
+    int num     = 0;                         // 배열에 채울 숫자
+    int x       = 0;                         // 현재 위치를 나타냄, [0][y]
+    int y       = -1;                        // 현재 위치를 나타냄, [x][-1]
+    int target  = 1;                         // 방향을 나타내는 변수, 1이면 오른쪽 또는 아래, -1이면 왼쪽 또는 위로 이동
     int max_row = row;                       // 채워야 할 행의 최대 개수
     int max_col = col;                       // 채워야 할 열의 최대 갯수 
 
-    while ((max_col > 0) && (max_row > 0))    // 채워야 할 행,열이 남아 있을 때 까지 반복 
+    while ((max_col > 0) && (max_row > 0))   // 채워야 할 행,열이 남아 있을 때 까지 반복 
     {
         for (int i = 0; i < max_col; i++)    // 현재 행에서 열을 따라 이동하면서 값 채우기, t가 1이면 오른쪽, -1이면 왼쪽 이동
         {
-            y += target;                    // y값을 증가 또는 감소 시켜 이동
+            y += target;                     // y값을 증가 또는 감소 시켜 이동
             arr[x][y] = num++;
         }
         max_row--;                           // 한 줄 채웠으면 남은 행 수 줄이기 
 
         for (int i = 0; i < max_row; i++)    // 현재 열에서 행을 따라 이동하면서 값 채우기, t가 1이면 아래, -1이면 위로 이동
         {
-            x += target;                    // x값을 증가 또는 감소 시켜 이동
+            x += target;                     // x값을 증가 또는 감소 시켜 이동
             arr[x][y] = num++;
         }
         max_col--;                           // 한 줄을 채웠으면 남은 열 수 줄이기
 
-        target = -target;                   // 방향 반대 바꾸기
+        target = -target;                    // 방향 반대 바꾸기
     }
 }
 
@@ -76,22 +76,54 @@ int get_valid_integer(char *prompt)
         }
         else
         {
-            printf("Error, input integer too big!\nPlease, input integer 1~10.\n"); // 10 이상 입력 시 에러 출력
-            exit(1);
+            printf("Error, input integer too big!\n");                              // 10 이상 입력 시 에러 출력
+            return -3;
         }
     }
     else
     {
-        printf("Error, invalid input!\nPlease, input positive integer.\n");         // 위 조건을 만족하지 않으면 에러 출력
-        exit(1);
+        printf("Error, invalid input!\n");                                          // 위 조건을 만족하지 않으면 에러 출력
+        return -4;
     }
 }
 
 int main(void)
 {
-    // 사용자로부터 행과 열 입력 받기
+    // 사용자로부터 행 입력 받기
     int row = get_valid_integer("row? ");
+
+    // get_valid_integer 함수에서 row의 에러가 발생한 경우 
+    if (row < 0)
+    {
+        if(row == -3)
+        {
+            printf("Please, row input integer 1~10.\n");
+            return -3;
+        }
+        else if(row == -4)
+        {
+            printf("Please, row input positive integer.\n");
+            return -4;
+        }
+    }
+
+    // 사용자로부터 열 입력 받기
     int col = get_valid_integer("col? ");
+
+    // get_valid_integer 함수에서 col의 에러가 발생한 경우
+    if(col < 0)
+    {
+        if(col == -3)
+        {
+            printf("Please, col input integer 1~10.\n");
+            return -3;
+        }
+        else if(col == -4)
+        {
+            printf("Please, col input positive integer.\n");
+            return -4;
+        }
+    }
 
     // 동적 메모리 할당
     int **arr = (int **)malloc(sizeof(int *) * row);
