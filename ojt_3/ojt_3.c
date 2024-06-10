@@ -103,9 +103,24 @@ int main(void)
 
     // 동적 메모리 할당
     int **arr = (int **)malloc(sizeof(int *) * row);
+
+    // 동적 메모리 할당 실패 시 오류
+    if( arr == NULL)
+    {
+        printf("Memory allocation failed.\n");
+        return -1;
+    }
+
     for (int i = 0; i < row; i++)
     {
         arr[i] = (int *)malloc(sizeof(int) * col);
+
+        // 동적 메모리 할당 실패 시 오류
+        if(arr[i] == NULL)
+        {
+            printf("Memory allocation failed.\n");
+            return -2;
+        }
     }
 
     // 배열을 달팽이 모양으로 채우기
