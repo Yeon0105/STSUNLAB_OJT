@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>                    // atoi를 쓰기 위한 헤더 파일 선언
 #include <ctype.h>                     // isdigit를 쓰기 위한 헤더 파일 선언
-
-#define MAX_OPERAND 10000              // 최대 피연산자 값 매크로 정의
-#define MIN_OPERAND -10000             // 최소 피연산자 값 매크로 정의
+#include <limits.h>                    // INT_MAX, INT_MAX를 쓰기 위한 헤더 파일 선언
 
 // 덧셈 함수
 int add(int operand_1, int operand_2)
@@ -70,7 +68,7 @@ int my_strlen(char str[])
 1. [예외처리] argc의 개수를 확인하고, 부족하거나 많은 경우 예외처리로 에러 메시지 출력.
 2. [코드구현] main에서 argc, argv로 입력 받은 문자열 인자들을 정수로 변환. (atoi 사용)
 3. [예외처리] 피연산자들이 숫자가 아닌 경우 예외처리로 에러 메시지 출력.
-4. [예외처리] 피연산자들이 최대값이나 최소값을 초과하면 예외처리로 에러 메시지 출력.
+4. [예외처리] 피연산자들이 int의 범위를 초과하면 예외처리로 에러 메시지 출력.
 5. [예외처리] 연산자가 잘못됐을 때 예외처리로 에러 메시지 출력.
 6. [예외처리] 나눗셈 연산 시 두번째 피연산자가 0이면 예외처리로 에러 메시지 출력.
 7. [코드구현] 사칙연산 계산 처리 및 결과 출력.
@@ -116,17 +114,15 @@ int main(int argc, char *argv[])
         return -4;
     }
 
-    // 피연산자가 최대값을 초과하면 에러
-    if ((first_operand > MAX_OPERAND) || (second_operand > MAX_OPERAND))
+    // 피연산자가 int 범위를 벗어나면 에러
+    if ((first_operand > INT_MAX) || (second_operand > INT_MAX))
     {
-        printf("Error, maximum value of the operand is %d.\n", MAX_OPERAND);
+        printf("Error, operand out of range for int type.\n");
         return -5;
     }
-
-    // 피연산자가 최소값을 초과하면 에러
-    if ((first_operand < MIN_OPERAND) || (second_operand < MIN_OPERAND))
+    else if ((first_operand < INT_MIN) || (second_operand < INT_MIN))
     {
-        printf("Error, minimum value of the operand is %d.\n", MIN_OPERAND);
+        printf("Error, operand out of range for int type.\n");
         return -6;
     }
 
