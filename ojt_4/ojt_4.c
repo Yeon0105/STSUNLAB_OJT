@@ -66,17 +66,19 @@ int my_strlen(char str[])
     return len;
 }
 
+/*
+1. [예외처리] argc의 개수를 확인하고, 부족하거나 많은 경우 예외처리로 에러 메시지 출력.
+2. [코드구현] main에서 argc, argv로 입력 받은 문자열 인자들을 정수로 변환. (atoi 사용)
+3. [예외처리] 피연산자들이 숫자가 아닌 경우 예외처리로 에러 메시지 출력.
+4. [예외처리] 피연산자들이 최대값이나 최소값을 초과하면 예외처리로 에러 메시지 출력.
+5. [예외처리] 연산자가 잘못됐을 때 예외처리로 에러 메시지 출력.
+6. [예외처리] 나눗셈 연산 시 두번째 피연산자가 0이면 예외처리로 에러 메시지 출력.
+7. [코드구현] 사칙연산 계산 처리 및 결과 출력.
+8. [코드구현] 사칙연산 계산기를 실행한 결과가 cal_result.txt 파일에 저장. (계산 결과값이 마지막 줄에 누적되어 저장됨)
+*/
+
 int main(int argc, char *argv[])
 {
-    int first_operand  = atoi(argv[1]);  // 첫 번째 피연산자, 문자열을 정수로 변환
-    int second_operand = atoi(argv[3]);  // 두 번째 피연산자, 문자열을 정수로 변환
-    char operator      = argv[2][0];     // 연산자
-
-    int result_int     = 0;              // 덧셈, 뺄셈, 곱셈 결과 값 (정수)
-    float result_float = 0.0;            // 나눗셈 결과 값 (소수점)
-
-    char result_string[200];             // 충분한 크기 버퍼 할당
-
     // 인자 수 4보다 적으면 에러, 4인 이유는 한 개는 프로그램 이름을 포함하기 때문
     if (argc < 4)
     {
@@ -90,7 +92,16 @@ int main(int argc, char *argv[])
         printf("Error, many operands.\n");
         return -2;
     }
+    
+    int first_operand  = atoi(argv[1]);  // 첫 번째 피연산자, 문자열을 정수로 변환
+    int second_operand = atoi(argv[3]);  // 두 번째 피연산자, 문자열을 정수로 변환
+    char operator      = argv[2][0];     // 연산자
 
+    int result_int     = 0;              // 덧셈, 뺄셈, 곱셈 결과 값 (정수)
+    float result_float = 0.0;            // 나눗셈 결과 값 (소수점)
+
+    char result_string[200];             // 충분한 크기 버퍼 할당
+    
     // 첫 번째 피연산자가 숫자가 아닌 경우 에러
     if (!check_number(argv[1]))
     {
