@@ -80,19 +80,8 @@ int my_strlen(char str[])
     return len;
 }
 
-/*
-1. [예외처리] argc의 개수를 확인하고, 부족하거나 많은 경우 예외처리로 에러 메시지 출력.
-2. [코드구현] main에서 argc, argv로 입력 받은 문자열 인자들을 정수로 변환. (atoi 사용)
-3. [예외처리] 피연산자들이 숫자가 아닌 경우 예외처리로 에러 메시지 출력.
-4. [예외처리] 피연산자들이 int의 범위를 초과하면 예외처리로 에러 메시지 출력.
-5. [예외처리] 연산자가 잘못됐을 때 예외처리로 에러 메시지 출력.
-6. [예외처리] 나눗셈 연산 시 두번째 피연산자가 0이면 예외처리로 에러 메시지 출력.
-7. [코드구현] 사칙연산 계산 처리 및 결과 출력.
-8. [코드구현] 사칙연산 계산기를 실행한 결과가 cal_result.txt 파일에 저장. (계산 결과값이 마지막 줄에 누적되어 저장됨)
-9. [enum 이용 예외처리] enum type을 이용하여 각 예외처리 상황의 return 값 처리.
-*/
-
-int main(int argc, char *argv[])
+// 예외처리 함수
+int input_validate(int argc, char *argv[])
 {
     // 인자 수 4보다 적으면 에러, 4인 이유는 한 개는 프로그램 이름을 포함하기 때문
     if (argc < 4)
@@ -107,16 +96,7 @@ int main(int argc, char *argv[])
         printf("Error, many operands.\n");
         return ERROR_MORE_THAN_4_OPERANDS;
     }
-    
-    int first_operand  = atoi(argv[1]);  // 첫 번째 피연산자, 문자열을 정수로 변환
-    int second_operand = atoi(argv[3]);  // 두 번째 피연산자, 문자열을 정수로 변환
-    char operator      = argv[2][0];     // 연산자
 
-    int result_int     = 0;              // 덧셈, 뺄셈, 곱셈 결과 값 (정수)
-    float result_float = 0.0;            // 나눗셈 결과 값 (소수점)
-
-    char result_string[200];             // 충분한 크기 버퍼 할당
-    
     // 첫 번째 피연산자가 숫자가 아닌 경우 에러
     if (!check_number(argv[1]))
     {
@@ -130,6 +110,9 @@ int main(int argc, char *argv[])
         printf("Error, second operand is not a number.\n");
         return ERROR_SECOND_OPERAND_NOT_NUM_;
     }
+
+    int first_operand  = atoi(argv[1]);  // 첫 번째 피연산자, 문자열을 정수로 변환
+    int second_operand = atoi(argv[3]);  // 두 번째 피연산자, 문자열을 정수로 변환
 
     // 피연산자가 int 범위를 벗어나면 에러
     if ((first_operand > INT_MAX) || (second_operand > INT_MAX))
@@ -151,11 +134,20 @@ int main(int argc, char *argv[])
     }
 
     // 0으로 나눌 때 에러
-    if ((operator == '/') && (second_operand == 0))
+    if ((argv[2][0] == '/') && (second_operand == 0))
     {
         printf("Error, cannot be divided by 0.\n");
         return ERROR_NOT_DIVIDE_BY_0;
     }
+
+    return ERROR_NONE;
+}
+
+// 계산기 처리 함수
+int calculate(int first_operand, char operator, int second_operand)
+{
+    int result_int     = 0;              // 덧셈, 뺄셈, 곱셈 결과 값 (정수)
+    float result_float = 0.0;            // 나눗셈 결과 값 (소수점)
 
     // +, -, X, / 연산자에 따라 해당 함수 호출
     switch (operator)
@@ -179,34 +171,84 @@ int main(int argc, char *argv[])
             result_float = divide(first_operand, second_operand);
             printf("%d / %d = %.1f\n", first_operand, second_operand, result_float);
             break;
-
+        
+        // +, -, X, /가 아니면 오류 출력
         default:
-            printf("Error, use +, -, X, / operator\n");   // +, -, X, /가 아니면 오류 출력
+            printf("Error, use +, -, X, / operator\n");
             return ERROR_NOT_4_BASIC_OPERATORS;
     }
+}
 
-    // 파일에 결과를 저장
-    FILE *fp = fopen("cal_result.txt", "a");              // "a" 모드로 파일 열기 (이어쓰기 모드)
+// 결과 파일 저장 함수
+int save_result_to_file(int first_operand, char operator, int second_operand)
+{
+    int result_int     = 0;              // 덧셈, 뺄셈, 곱셈 결과 값 (정수)
+    float result_float = 0.0;            // 나눗셈 결과 값 (소수점)
+
+    char result_string[200];             // 충분한 크기 버퍼 할당
+
+    // 파일에 결과를 저장, "a" 모드로 파일 열기 (이어쓰기 모드)
+    FILE *fp = fopen("cal_result.txt", "a");
 
     if (fp == NULL)
     {
-        printf ("Error open file");
+        printf("Error open file");
         return ERROR_FOPEN_FAIL;
     }
 
-    // 정수를 문자열로 변환하여 파일에 쓰기 (sprintf 사용)
-    if (operator == '/')
+    // fwrite 쓰려면 정수를 문자열로 변환 필요 -> sprintf 사용
+    switch (operator)
     {
-        sprintf(result_string, "%.1f\n", result_float);   // 소수점 한 자리까지 출력
-    }
-    else
-    {
-        sprintf(result_string, "%d\n", result_int);
+        case '+':
+            result_int = add(first_operand, second_operand);
+            sprintf(result_string, "%d\n", result_int);
+            break;
+
+        case '-':
+            result_int = subtract(first_operand, second_operand);
+            sprintf(result_string, "%d\n", result_int);
+            break;
+
+        case 'X':
+            result_int = multiply(first_operand, second_operand);
+            sprintf(result_string, "%d\n", result_int);
+            break;
+
+        case '/':
+            result_float = divide(first_operand, second_operand);
+            sprintf(result_string, "%.1f\n", result_float);   // 소수점 한 자리까지 출력
+            break;
     }
 
     // 파일 쓰기 및 닫기
     fwrite(result_string, sizeof(char), my_strlen(result_string), fp);
     fclose(fp);
+
+    return ERROR_NONE;
+}
+
+/*
+1. [enum 사용] enum type을 이용하여 각 예외처리 상황의 return 값 설정
+2. [예외처리] 입력 유효성 검사 및 예외처리 하는 함수로 이동, 예외처리 할 상황이면 에러 메시지 출력
+3. [atoi 사용] 사칙연산 계산을 하기 위해 문자열 피연산자들을 정수로 변환
+4. [사칙연산 수행] +, -, X, / 연산자에 따라 계산하는 함수 호출
+5. [파일 저장 수행] 계산 결과를 파일에 저장하는 함수 호출, fwrite는 정수를 문자열로 반환해서 써야 하기 때문에 sprintf 사용
+*/
+
+int main(int argc, char *argv[])
+{
+    int error_validate = input_validate(argc, argv);            // 입력 유효성 검사
+    if (error_validate != ERROR_NONE)                           // 0이 아니면 enum에서 설정한 return 값 출력
+    {
+        return error_validate;                                  // 유효성 검사 실패 시 enum에서 정의한 오류 코드 반환
+    }
+
+    int first_operand  = atoi(argv[1]);                           // 첫 번째 피연산자, 문자열을 정수로 변환
+    int second_operand = atoi(argv[3]);                           // 두 번째 피연산자, 문자열을 정수로 변환
+    char operator      = argv[2][0];                              // 연산자
+
+    calculate(first_operand, operator, second_operand);           // +, -, X, / 연산자에 따라 계산하는 함수 호출
+    save_result_to_file(first_operand, operator, second_operand); // 계산 결과를 파일에 저장하는 함수 호출
 
     return ERROR_NONE;
 }
