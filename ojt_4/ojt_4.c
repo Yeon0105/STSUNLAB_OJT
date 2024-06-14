@@ -6,8 +6,8 @@
 // enum 이용하여 예외상황 처리
 enum ERROR_EXCEPTION_HANDLING
 {
+    SUCCESS_OPERAND_CHECK_NUM      = 1,
     ERROR_NONE                     = 0,
-    OPERAND_CHECK_NUM_TRUE         = 1,
     ERROR_LESS_THAN_4_OPERANDS     = -1,
     ERROR_MORE_THAN_4_OPERANDS     = -2,
     ERROR_FIRST_OPERAND_NOT_NUM    = -3,
@@ -64,7 +64,7 @@ int check_number(char *str)
     }
 
     // 인자가 숫자이면 1 (true) 반환
-    return OPERAND_CHECK_NUM_TRUE;
+    return SUCCESS_OPERAND_CHECK_NUM;
 }
 
 // 문자열 길이 strlen 계산 함수
