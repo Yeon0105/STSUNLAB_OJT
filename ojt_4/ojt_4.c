@@ -280,7 +280,8 @@ int calculate(int first_operand, char operator, int second_operand)
                 return ERROR_DATA_UNDERFLOW;
             }
 
-            printf("%d / %d = %.1f\n", first_operand, second_operand, result_float);
+            // %g를 사용하여 소수점 이하 0이 모두 사라진 채 출력
+            printf("%d / %d = %g\n", first_operand, second_operand, result_float);
             break;
 
         // +, -, X, /가 아니면 오류 출력
@@ -328,7 +329,7 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
 
         case '/':
             divide(first_operand, second_operand, &result_float);
-            sprintf(result_string, "%.1f\n", result_float);   // 소수점 한 자리까지 출력
+            sprintf(result_string, "%g\n", result_float);   // 소수점 이하 0이 모두 사라진 채 출력
             break;
     }
 
