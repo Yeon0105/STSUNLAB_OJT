@@ -7,13 +7,14 @@ CC = gcc
 MAIN=ojt_4.c
 
 #Target executable
-TARGET = ojt_4
+TARGET_1 = ojt_4
+TARGET_2 = cal_result.txt
 
 #Default target
-all: $(TARGET)
+all: $(TARGET_1)
 
-$(TARGET): $(MAIN)
-	$(CC) -o $(TARGET) $(MAIN)
+$(TARGET_1): $(MAIN)
+	$(CC) -o $(TARGET_1) $(MAIN)
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET_1) $(TARGET_2)

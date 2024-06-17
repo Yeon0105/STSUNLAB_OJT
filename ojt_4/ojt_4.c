@@ -17,8 +17,10 @@ typedef enum cal_result_type_e
     ERROR_NOT_DIVIDE_BY_0          = -7,
     ERROR_NOT_4_BASIC_OPERATORS    = -8,
     ERROR_FOPEN_FAIL               = -9,
-    ERROR_DATA_OVERFLOW            = -10,
-    ERROR_DATA_UNDERFLOW           = -11
+    ERROR_FWRITE_FAIL              = -10,
+    ERROR_FCLOSE_FAIL              = -11,
+    ERROR_DATA_OVERFLOW            = -12,
+    ERROR_DATA_UNDERFLOW           = -13
 } cal_result_type;
 
 // 덧셈 함수
@@ -298,6 +300,7 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
     int result_int     = 0;              // 덧셈, 뺄셈, 곱셈 결과 값 (정수)
     float result_float = 0.0;            // 나눗셈 결과 값 (소수점)
 
+    int len            = 0;              // 문자열 길이를 담는 len 변수 
     char result_string[200];             // 충분한 크기 버퍼 할당
 
     // 파일에 결과를 저장, "a" 모드로 파일 열기 (이어쓰기 모드)
@@ -305,7 +308,7 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
 
     if (fp == NULL)
     {
-        printf("Error open file");
+        printf("Error, file opening failed.\nCheck the file permissions.\n");
         return ERROR_FOPEN_FAIL;
     }
 
@@ -333,9 +336,20 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
             break;
     }
 
-    // 파일 쓰기 및 닫기
-    fwrite(result_string, sizeof(char), my_strlen(result_string), fp);
-    fclose(fp);
+    len = my_strlen(result_string);
+
+    if (fwrite(result_string, sizeof(char), my_strlen(result_string), fp) != len)
+    {
+        printf("Error, file writing failed.\nCheck the file permissions.\n");
+        return ERROR_FWRITE_FAIL;
+    }
+    
+    // fclose는 성공적으로 닫으면 0 반환
+    if (fclose(fp) != 0)
+    {
+        printf("Error, file closing failed.\nCheck the file permissions.\n");
+        return ERROR_FCLOSE_FAIL;
+    }
 
     return ERROR_NONE;
 }
@@ -347,6 +361,7 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
 4. [overflow, underflow 검사] calculate 함수에서 연산 함수의 반환값으로 에러 처리
 4. [사칙연산 수행] 결과값이 enum 반환값과 같으면 오버플로우 및 언더플로우 에러 메시지 출력, +, -, X, / 연산자에 따라 계산하는 함수 호출
 5. [파일 저장 수행] 계산 결과를 파일에 저장하는 함수 호출, fwrite는 정수를 문자열로 반환해서 써야 하기 때문에 sprintf 사용
+6/ [파일 저장 예외처리] 파일을 저장하고 출력하는 중, 오류 발생 시 enum에 있는 값 반환
 */
 
 int main(int argc, char *argv[])
@@ -366,11 +381,15 @@ int main(int argc, char *argv[])
     // 오버플로우 및 언더플로우 발생 시 이상한 결과를 파일에 저장 하지 않기 위한 조건문 설정
     if (calc_result != ERROR_NONE)
     {
-        return calc_result;                                               //calculate 함수에서 오류가 발생하면 enum에서 설정한 값 반환
+        return calc_result;                                               // calculate 함수에서 오류가 발생하면 enum에서 설정한 값 반환
     }
 
-    // 계산 결과를 파일에 저장하는 함수 호출
-    save_result_to_file(first_operand, operator, second_operand);
+    int file_save_result = save_result_to_file(first_operand, operator, second_operand);
+
+    if (file_save_result != ERROR_NONE)
+    {
+        return file_save_result;                                          // save_result_to_file 함수에서 오류가 발생하면 enum에서 설정한 값 반환
+    }
 
     return ERROR_NONE;
 }
