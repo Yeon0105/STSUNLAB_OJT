@@ -4,7 +4,7 @@
 #include <limits.h>  // INT_MAX, INT_MIN를 쓰기 위한 헤더 파일 선언 (-2,147,483,648 ~ 2,147,483,647)
 
 // enum 이용하여 예외상황 처리
-enum ERROR_EXCEPTION_HANDLING
+typedef enum cal_result_type_e
 {
     SUCCESS_OPERAND_CHECK_NUM      = 1,
     ERROR_NONE                     = 0,
@@ -19,74 +19,86 @@ enum ERROR_EXCEPTION_HANDLING
     ERROR_FOPEN_FAIL               = -9,
     ERROR_DATA_OVERFLOW            = -10,
     ERROR_DATA_UNDERFLOW           = -11
-};
+} cal_result_type;
 
 // 덧셈 함수
-int add(int operand_1, int operand_2)
+int add(int operand_1, int operand_2, int* result)
 {
-    double result = (double)operand_1 + (double)operand_2;
+    double temp_result = (double)operand_1 + (double)operand_2;
 
-    if (result > INT_MAX)
+    if (temp_result > INT_MAX)
     {
         return ERROR_DATA_OVERFLOW;
     }
-    if (result < INT_MIN)
+    if (temp_result < INT_MIN)
     {
         return ERROR_DATA_UNDERFLOW;
     }
 
-    return (int)result;
+    // 포인터를 통해 result_int의 값을 변경
+    *result = (int)temp_result;
+
+    return ERROR_NONE;
 }
 
 // 뺄셈 함수
-int subtract(int operand_1, int operand_2)
+int subtract(int operand_1, int operand_2, int* result)
 {
-    double result = (double)operand_1 - (double)operand_2;
+    double temp_result = (double)operand_1 - (double)operand_2;
 
-    if (result > INT_MAX)
+    if (temp_result > INT_MAX)
     {
         return ERROR_DATA_OVERFLOW;
     }
-    if (result < INT_MIN)
+    if (temp_result < INT_MIN)
     {
         return ERROR_DATA_UNDERFLOW;
     }
 
-    return (int)result;
+    // 포인터를 통해 result_int의 값을 변경
+    *result = (int)temp_result;
+
+    return ERROR_NONE;
 }
 
 // 곱셈 함수
-int multiply(int operand_1, int operand_2)
+int multiply(int operand_1, int operand_2, int* result)
 {
-    double result = (double)operand_1 * (double)operand_2;
+    double temp_result = (double)operand_1 * (double)operand_2;
 
-    if (result > INT_MAX)
+    if (temp_result > INT_MAX)
     {
         return ERROR_DATA_OVERFLOW;
     }
-    if (result < INT_MIN)
+    if (temp_result < INT_MIN)
     {
         return ERROR_DATA_UNDERFLOW;
     }
 
-    return (int)result;
+    // 포인터를 통해 result_int의 값을 변경
+    *result = (int)temp_result;
+
+    return ERROR_NONE;
 }
 
 // 나눗셈 함수
-float divide(int operand_1, int operand_2)
+int divide(int operand_1, int operand_2, float* result)
 {
-    double result = (double)operand_1 / (double)operand_2;
+    double temp_result = (double)operand_1 / (double)operand_2;
 
-    if (result > INT_MAX)
+    if (temp_result > INT_MAX)
     {
         return ERROR_DATA_OVERFLOW;
     }
-    if (result < INT_MIN)
+    if (temp_result < INT_MIN)
     {
         return ERROR_DATA_UNDERFLOW;
     }
 
-    return (float)result;
+    // 포인터를 통해 result_float의 값을 변경
+    *result = (float)temp_result;
+
+    return ERROR_NONE;
 }
 
 // 입력이 숫자인지 확인하는 함수
@@ -194,20 +206,21 @@ int calculate(int first_operand, char operator, int second_operand)
 {
     int result_int     = 0;              // 덧셈, 뺄셈, 곱셈 결과 값 (정수)
     float result_float = 0.0;            // 나눗셈 결과 값 (소수점)
+    cal_result_type error_num;           // enum에 정의한 함수 반환값을 저장할 error_num 변수
 
     // +, -, X, / 연산자에 따라 해당 함수 호출
     switch (operator)
     {
         case '+':
-            result_int = add(first_operand, second_operand);
-            
+            error_num = add(first_operand, second_operand, &result_int);
+
             // 오버플로우 및 언더플로우 에러메시지 출력
-            if (result_int == ERROR_DATA_OVERFLOW)
+            if (error_num == ERROR_DATA_OVERFLOW)
             {
                 printf("Error, data overflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
                 return ERROR_DATA_OVERFLOW;
             }
-            if (result_int == ERROR_DATA_UNDERFLOW)
+            if (error_num == ERROR_DATA_UNDERFLOW)
             {
                 printf("Error, data underflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
                 return ERROR_DATA_UNDERFLOW;
@@ -217,15 +230,15 @@ int calculate(int first_operand, char operator, int second_operand)
             break;
 
         case '-':
-            result_int = subtract(first_operand, second_operand);
+            error_num = subtract(first_operand, second_operand, &result_int);
 
             // 오버플로우 및 언더플로우 에러메시지 출력
-            if (result_int == ERROR_DATA_OVERFLOW)
+            if (error_num == ERROR_DATA_OVERFLOW)
             {
                 printf("Error, data overflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
                 return ERROR_DATA_OVERFLOW;
             }
-            if (result_int == ERROR_DATA_UNDERFLOW)
+            if (error_num == ERROR_DATA_UNDERFLOW)
             {
                 printf("Error, data underflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
                 return ERROR_DATA_UNDERFLOW;
@@ -235,15 +248,15 @@ int calculate(int first_operand, char operator, int second_operand)
             break;
 
         case 'X':
-            result_int = multiply(first_operand, second_operand);
+            error_num = multiply(first_operand, second_operand, &result_int);
 
             // 오버플로우 및 언더플로우 에러메시지 출력
-            if (result_int == ERROR_DATA_OVERFLOW)
+            if (error_num == ERROR_DATA_OVERFLOW)
             {
                 printf("Error, data overflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
                 return ERROR_DATA_OVERFLOW;
             }
-            if (result_int == ERROR_DATA_UNDERFLOW)
+            if (error_num == ERROR_DATA_UNDERFLOW)
             {
                 printf("Error, data underflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
                 return ERROR_DATA_UNDERFLOW;
@@ -253,15 +266,15 @@ int calculate(int first_operand, char operator, int second_operand)
             break;
 
         case '/':
-            result_float = divide(first_operand, second_operand);
+            error_num = divide(first_operand, second_operand, &result_float);
 
             // 오버플로우 및 언더플로우 에러메시지 출력
-            if (result_float == ERROR_DATA_OVERFLOW)
+            if (error_num == ERROR_DATA_OVERFLOW)
             {
                 printf("Error, data overflow.\nPlease, input range of -2147483648 ~ 2147483,47.\n");
                 return ERROR_DATA_OVERFLOW;
             }
-            if (result_float == ERROR_DATA_UNDERFLOW)
+            if (error_num == ERROR_DATA_UNDERFLOW)
             {
                 printf("Error, data underflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
                 return ERROR_DATA_UNDERFLOW;
@@ -299,22 +312,22 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
     switch (operator)
     {
         case '+':
-            result_int = add(first_operand, second_operand);
+            add(first_operand, second_operand, &result_int);
             sprintf(result_string, "%d\n", result_int);
             break;
 
         case '-':
-            result_int = subtract(first_operand, second_operand);
+            subtract(first_operand, second_operand, &result_int);
             sprintf(result_string, "%d\n", result_int);
             break;
 
         case 'X':
-            result_int = multiply(first_operand, second_operand);
+            multiply(first_operand, second_operand, &result_int);
             sprintf(result_string, "%d\n", result_int);
             break;
 
         case '/':
-            result_float = divide(first_operand, second_operand);
+            divide(first_operand, second_operand, &result_float);
             sprintf(result_string, "%.1f\n", result_float);   // 소수점 한 자리까지 출력
             break;
     }
@@ -330,7 +343,7 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
 1. [enum 사용] enum type을 이용하여 각 예외처리 상황의 return 값 설정
 2. [예외처리] 입력 유효성 검사 및 예외처리 하는 함수로 이동, 예외처리 할 상황이면 에러 메시지 출력
 3. [atoi 사용] 사칙연산 계산을 하기 위해 문자열 피연산자들을 정수로 변환
-4. [overflow, underflow 검사] double로 형변환 후, 계산한 값이 int의 범위를 넘으면 enum에 설정한 return 값 반환
+4. [overflow, underflow 검사] calculate 함수에서 연산 함수의 반환값으로 에러 처리
 4. [사칙연산 수행] 결과값이 enum 반환값과 같으면 오버플로우 및 언더플로우 에러 메시지 출력, +, -, X, / 연산자에 따라 계산하는 함수 호출
 5. [파일 저장 수행] 계산 결과를 파일에 저장하는 함수 호출, fwrite는 정수를 문자열로 반환해서 써야 하기 때문에 sprintf 사용
 */
