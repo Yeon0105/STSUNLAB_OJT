@@ -17,10 +17,11 @@ typedef enum cal_result_type_e
     ERROR_NOT_DIVIDE_BY_0          = -7,
     ERROR_NOT_4_BASIC_OPERATORS    = -8,
     ERROR_FOPEN_FAIL               = -9,
-    ERROR_FWRITE_FAIL              = -10,
-    ERROR_FCLOSE_FAIL              = -11,
-    ERROR_DATA_OVERFLOW            = -12,
-    ERROR_DATA_UNDERFLOW           = -13
+    ERROR_FSEEK_FAIL               = -10,
+    ERROR_FWRITE_FAIL              = -11,
+    ERROR_FCLOSE_FAIL              = -12,
+    ERROR_DATA_OVERFLOW            = -13,
+    ERROR_DATA_UNDERFLOW           = -14
 } cal_result_type;
 
 // 덧셈 함수
@@ -300,16 +301,34 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
     int result_int     = 0;              // 덧셈, 뺄셈, 곱셈 결과 값 (정수)
     float result_float = 0.0;            // 나눗셈 결과 값 (소수점)
 
-    int len            = 0;              // 문자열 길이를 담는 len 변수 
+    int len            = 0;              // 문자열 길이를 담는 len 변수
+    char newline       = '\n';           // 줄바꿈 문자 추가
     char result_string[200];             // 충분한 크기 버퍼 할당
 
-    // 파일에 결과를 저장, "a" 모드로 파일 열기 (이어쓰기 모드)
-    FILE *fp = fopen("cal_result.txt", "a");
+    // "r+" 모드로 파일을 열어서 파일이 없을 경우 파일을 생성
+    // "r+" 모드는 기존의 내용이 존재할 경우, 기존의 내용을 지우지 않으면서 열기 때문에 기존 내용에 새로운 내용을 추가하거나 할 수 있다.
+    FILE *fp = fopen("cal_result.txt", "r+");
 
+    // "r+" 모드로 연 파일이 존재 하지 않으면 파일을 "w+" 모드로 열고, "w+" 모드로 연 파일이 존재하지 않으면 에러 출력
+    // "w+" 모드는 기존의 내용이 존재할 경우, 기존의 내용을 모두 지우기 때문에 기존 파일에 덧붙여서 파일에 쓰고자 할 때 문제가 발생한다.
     if (fp == NULL)
     {
-        printf("Error, file opening failed.\nCheck the file permissions.\n");
-        return ERROR_FOPEN_FAIL;
+        // 파일이 없을 경우 "w+" 모드로 생성
+        fp = fopen("cal_result.txt", "w+");
+        if (fp == NULL)
+        {
+            printf("Error, file opening failed.\nCheck the file permissions.\n");
+            return ERROR_FOPEN_FAIL;
+        }
+    }
+    else
+    {
+        // 파일이 있을 경우 파일 끝으로 이동
+        if(fseek(fp, 0, SEEK_END) != 0)
+        {
+            printf("Error, file seeking failed.\nCheck the file permissions.\n");
+            return ERROR_FSEEK_FAIL;
+        }
     }
 
     // fwrite 쓰려면 정수를 문자열로 변환 필요 -> sprintf 사용
@@ -317,33 +336,41 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
     {
         case '+':
             add(first_operand, second_operand, &result_int);
-            sprintf(result_string, "%d\n", result_int);
+            sprintf(result_string, "%d", result_int);
             break;
 
         case '-':
             subtract(first_operand, second_operand, &result_int);
-            sprintf(result_string, "%d\n", result_int);
+            sprintf(result_string, "%d", result_int);
             break;
 
         case 'X':
             multiply(first_operand, second_operand, &result_int);
-            sprintf(result_string, "%d\n", result_int);
+            sprintf(result_string, "%d", result_int);
             break;
 
         case '/':
             divide(first_operand, second_operand, &result_float);
-            sprintf(result_string, "%g\n", result_float);   // 소수점 이하 0이 모두 사라진 채 출력
+            sprintf(result_string, "%g", result_float);   // 소수점 이하 0이 모두 사라진 채 출력
             break;
     }
 
-    len = my_strlen(result_string);
+    len = my_strlen(result_string);                       // 문자열의 길이가 들어있음
 
-    if (fwrite(result_string, sizeof(char), my_strlen(result_string), fp) != len)
+    // fwrite 함수는 성공적으로 쓴 바이트 수를 반환
+    if (fwrite(result_string, sizeof(char), len, fp) != len)
     {
         printf("Error, file writing failed.\nCheck the file permissions.\n");
         return ERROR_FWRITE_FAIL;
     }
-    
+
+    // &newline 은 newline의 주소를 말하며, fwrite 함수에 newline 주소를 전달하여 파일에 쓰도록 함, 줄바꿈 문자 1개를 쓰므로 1 사용
+    if (fwrite(&newline, sizeof(char), 1, fp) != 1)
+    {
+        printf("Error, writing newline to file failed.\nCheck the file permissions.\n");
+        return ERROR_FWRITE_FAIL;
+    }
+
     // fclose는 성공적으로 닫으면 0 반환
     if (fclose(fp) != 0)
     {
