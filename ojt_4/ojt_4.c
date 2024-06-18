@@ -302,8 +302,8 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
     float result_float = 0.0;            // 나눗셈 결과 값 (소수점)
 
     int len            = 0;              // 문자열 길이를 담는 len 변수
-    char newline       = '\n';           // 줄바꿈 문자 추가
     char result_string[200];             // 충분한 크기 버퍼 할당
+    char newline[2]    = {0x0d, 0x0a};   // 윈도우 줄바꿈 \n 에 해당하는 hex 값
 
     // "r+" 모드로 파일을 열어서 파일이 없을 경우 파일을 생성
     // "r+" 모드는 기존의 내용이 존재할 경우, 기존의 내용을 지우지 않으면서 열기 때문에 기존 내용에 새로운 내용을 추가하거나 할 수 있다.
@@ -364,8 +364,8 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
         return ERROR_FWRITE_FAIL;
     }
 
-    // &newline 은 newline의 주소를 말하며, fwrite 함수에 newline 주소를 전달하여 파일에 쓰도록 함, 줄바꿈 문자 1개를 쓰므로 1 사용
-    if (fwrite(&newline, sizeof(char), 1, fp) != 1)
+    // 줄바꿈 문자 쓰기, "\r\n" 2개를 쓰므로 2 사용
+    if (fwrite(newline, sizeof(char), 2, fp) != 2)
     {
         printf("Error, writing newline to file failed.\nCheck the file permissions.\n");
         return ERROR_FWRITE_FAIL;
