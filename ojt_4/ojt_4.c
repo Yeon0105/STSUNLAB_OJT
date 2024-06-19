@@ -24,86 +24,6 @@ typedef enum cal_result_type_e
     ERROR_DATA_UNDERFLOW           = -14
 } cal_result_type;
 
-// 덧셈 함수
-int add(int operand_1, int operand_2, int* result)
-{
-    double temp_result = (double)operand_1 + (double)operand_2;
-
-    if (temp_result > INT_MAX)
-    {
-        return ERROR_DATA_OVERFLOW;
-    }
-    if (temp_result < INT_MIN)
-    {
-        return ERROR_DATA_UNDERFLOW;
-    }
-
-    // 포인터를 통해 result_int의 값을 변경
-    *result = (int)temp_result;
-
-    return ERROR_NONE;
-}
-
-// 뺄셈 함수
-int subtract(int operand_1, int operand_2, int* result)
-{
-    double temp_result = (double)operand_1 - (double)operand_2;
-
-    if (temp_result > INT_MAX)
-    {
-        return ERROR_DATA_OVERFLOW;
-    }
-    if (temp_result < INT_MIN)
-    {
-        return ERROR_DATA_UNDERFLOW;
-    }
-
-    // 포인터를 통해 result_int의 값을 변경
-    *result = (int)temp_result;
-
-    return ERROR_NONE;
-}
-
-// 곱셈 함수
-int multiply(int operand_1, int operand_2, int* result)
-{
-    double temp_result = (double)operand_1 * (double)operand_2;
-
-    if (temp_result > INT_MAX)
-    {
-        return ERROR_DATA_OVERFLOW;
-    }
-    if (temp_result < INT_MIN)
-    {
-        return ERROR_DATA_UNDERFLOW;
-    }
-
-    // 포인터를 통해 result_int의 값을 변경
-    *result = (int)temp_result;
-
-    return ERROR_NONE;
-}
-
-// 나눗셈 함수
-int divide(int operand_1, int operand_2, float* result)
-{
-    double temp_result = (double)operand_1 / (double)operand_2;
-
-    if (temp_result > INT_MAX)
-    {
-        return ERROR_DATA_OVERFLOW;
-    }
-    if (temp_result < INT_MIN)
-    {
-        return ERROR_DATA_UNDERFLOW;
-    }
-
-    // 포인터를 통해 result_float의 값을 변경
-    *result = (float)temp_result;
-
-    return ERROR_NONE;
-}
-
 // 입력이 숫자인지 확인하는 함수
 int check_number(char *str)
 {
@@ -204,106 +124,64 @@ int input_validate(int argc, char *argv[])
     return ERROR_NONE;
 }
 
-// 계산기 처리 함수
-int calculate(int first_operand, char operator, int second_operand)
+// 계산기 처리 및 결과 파일 저장 함수
+int calculate_and_save(int first_operand, char operator, int second_operand)
 {
-    int result_int     = 0;              // 덧셈, 뺄셈, 곱셈 결과 값 (정수)
-    float result_float = 0.0;            // 나눗셈 결과 값 (소수점)
-    cal_result_type error_num;           // enum에 정의한 함수 반환값을 저장할 error_num 변수
+    double result = 0.0;                    // 계산 결과 값을 저장하는 변수
+    int len       = 0;                      // 문자열 길이를 담는 변수
+    char result_string[200];                // 파일에 문자열 계산 결과값을 저장할 충분한 크기 버퍼 할당
+    char newline[2] = {0x0d, 0x0a};         // 윈도우 줄바꿈 \n 에 해당하는 hex 값
+    cal_result_type error_num = ERROR_NONE; // enum에 정의한 함수 반환값을 저장할 error_num 변수
 
-    // +, -, X, / 연산자에 따라 해당 함수 호출
+    // +, -, X, / 연산 수행
     switch (operator)
     {
         case '+':
-            error_num = add(first_operand, second_operand, &result_int);
-
-            // 오버플로우 및 언더플로우 에러메시지 출력
-            if (error_num == ERROR_DATA_OVERFLOW)
-            {
-                printf("Error, data overflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
-                return ERROR_DATA_OVERFLOW;
-            }
-            if (error_num == ERROR_DATA_UNDERFLOW)
-            {
-                printf("Error, data underflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
-                return ERROR_DATA_UNDERFLOW;
-            }
-
-            printf("%d + %d = %d\n", first_operand, second_operand, result_int);
+            result = (double)first_operand + (double)second_operand;
             break;
 
         case '-':
-            error_num = subtract(first_operand, second_operand, &result_int);
-
-            // 오버플로우 및 언더플로우 에러메시지 출력
-            if (error_num == ERROR_DATA_OVERFLOW)
-            {
-                printf("Error, data overflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
-                return ERROR_DATA_OVERFLOW;
-            }
-            if (error_num == ERROR_DATA_UNDERFLOW)
-            {
-                printf("Error, data underflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
-                return ERROR_DATA_UNDERFLOW;
-            }
-
-            printf("%d - %d = %d\n", first_operand, second_operand, result_int);
+            result = (double)first_operand - (double)second_operand;
             break;
 
         case 'X':
-            error_num = multiply(first_operand, second_operand, &result_int);
-
-            // 오버플로우 및 언더플로우 에러메시지 출력
-            if (error_num == ERROR_DATA_OVERFLOW)
-            {
-                printf("Error, data overflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
-                return ERROR_DATA_OVERFLOW;
-            }
-            if (error_num == ERROR_DATA_UNDERFLOW)
-            {
-                printf("Error, data underflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
-                return ERROR_DATA_UNDERFLOW;
-            }
-
-            printf("%d X %d = %d\n", first_operand, second_operand, result_int);
+            result = (double)first_operand * (double)second_operand;
             break;
 
         case '/':
-            error_num = divide(first_operand, second_operand, &result_float);
-
-            // 오버플로우 및 언더플로우 에러메시지 출력
-            if (error_num == ERROR_DATA_OVERFLOW)
-            {
-                printf("Error, data overflow.\nPlease, input range of -2147483648 ~ 2147483,47.\n");
-                return ERROR_DATA_OVERFLOW;
-            }
-            if (error_num == ERROR_DATA_UNDERFLOW)
-            {
-                printf("Error, data underflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
-                return ERROR_DATA_UNDERFLOW;
-            }
-
-            // %g를 사용하여 소수점 이하 0이 모두 사라진 채 출력
-            printf("%d / %d = %g\n", first_operand, second_operand, result_float);
+            result = (double)first_operand / (double)second_operand;
             break;
 
-        // +, -, X, /가 아니면 오류 출력
         default:
             printf("Error, use +, -, X, / operator\n");
             return ERROR_NOT_4_BASIC_OPERATORS;
     }
-    return ERROR_NONE;
-}
 
-// 결과 파일 저장 함수
-int save_result_to_file(int first_operand, char operator, int second_operand)
-{
-    int result_int     = 0;              // 덧셈, 뺄셈, 곱셈 결과 값 (정수)
-    float result_float = 0.0;            // 나눗셈 결과 값 (소수점)
+    // overflow, underflow 체크 후 에러메시지 출력
+    if (result > INT_MAX)
+    {
+        printf("Error, data overflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
+        return ERROR_DATA_OVERFLOW;
+    }
+    if (result < INT_MIN)
+    {
+        printf("Error, data underflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
+        return ERROR_DATA_UNDERFLOW;
+    }
 
-    int len            = 0;              // 문자열 길이를 담는 len 변수
-    char result_string[200];             // 충분한 크기 버퍼 할당
-    char newline[2]    = {0x0d, 0x0a};   // 윈도우 줄바꿈 \n 에 해당하는 hex 값
+    // '/' 연산 결과 터미널 창에 출력 및 파일에 결과 저장
+    if (operator == '/')
+    {
+        printf("%d %c %d = %g\n", first_operand, operator, second_operand, result); // %g 사용 시 소수점 이하 0이 모두 사라진 채 출력
+        sprintf(result_string, "%g", result);                                       // fwrite 쓰려면 정수를 문자열로 변환 필요 -> sprintf 사용
+    }
+
+    // '+,-,X' 연산 결과 터미널 창에 출력 및 파일에 결과 저장
+    else
+    {
+        printf("%d %c %d = %d\n", first_operand, operator, second_operand, (int)result);
+        sprintf(result_string, "%d", (int)result);
+    }
 
     // "r+" 모드로 파일을 열어서 파일이 없을 경우 파일을 생성
     // "r+" 모드는 기존의 내용이 존재할 경우, 기존의 내용을 지우지 않으면서 열기 때문에 기존 내용에 새로운 내용을 추가하거나 할 수 있다.
@@ -331,40 +209,16 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
         }
     }
 
-    // fwrite 쓰려면 정수를 문자열로 변환 필요 -> sprintf 사용
-    switch (operator)
-    {
-        case '+':
-            add(first_operand, second_operand, &result_int);
-            sprintf(result_string, "%d", result_int);
-            break;
+    len = my_strlen(result_string); // 문자열의 길이가 들어있음
 
-        case '-':
-            subtract(first_operand, second_operand, &result_int);
-            sprintf(result_string, "%d", result_int);
-            break;
-
-        case 'X':
-            multiply(first_operand, second_operand, &result_int);
-            sprintf(result_string, "%d", result_int);
-            break;
-
-        case '/':
-            divide(first_operand, second_operand, &result_float);
-            sprintf(result_string, "%g", result_float);   // 소수점 이하 0이 모두 사라진 채 출력
-            break;
-    }
-
-    len = my_strlen(result_string);                       // 문자열의 길이가 들어있음
-
-    // fwrite 함수는 성공적으로 쓴 바이트 수를 반환
+    // 계산 결과 저장 된 값을 파일에 쓰기, fwrite 함수는 성공적으로 쓴 바이트 수를 반환
     if (fwrite(result_string, sizeof(char), len, fp) != len)
     {
         printf("Error, file writing failed.\nCheck the file permissions.\n");
         return ERROR_FWRITE_FAIL;
     }
 
-    // 줄바꿈 문자 쓰기, "\r\n" 2개를 쓰므로 2 사용
+    // 줄바꿈 문자 쓰기. "\r\n" 2개를 쓰므로 2 사용
     if (fwrite(newline, sizeof(char), 2, fp) != 2)
     {
         printf("Error, writing newline to file failed.\nCheck the file permissions.\n");
@@ -386,37 +240,26 @@ int save_result_to_file(int first_operand, char operator, int second_operand)
 2. [예외처리] 입력 유효성 검사 및 예외처리 하는 함수로 이동, 예외처리 할 상황이면 에러 메시지 출력
 3. [atoi 사용] 사칙연산 계산을 하기 위해 문자열 피연산자들을 정수로 변환
 4. [overflow, underflow 검사] calculate 함수에서 연산 함수의 반환값으로 에러 처리
-4. [사칙연산 수행] 결과값이 enum 반환값과 같으면 오버플로우 및 언더플로우 에러 메시지 출력, +, -, X, / 연산자에 따라 계산하는 함수 호출
-5. [파일 저장 수행] 계산 결과를 파일에 저장하는 함수 호출, fwrite는 정수를 문자열로 반환해서 써야 하기 때문에 sprintf 사용
-6/ [파일 저장 예외처리] 파일을 저장하고 출력하는 중, 오류 발생 시 enum에 있는 값 반환
+5. [사칙연산 수행] 연산자를 기준으로 사칙연산을 수행하고, 결과 처리
+6. [파일 저장 수행] 계산 결과를 파일에 저장, 파일을 열고, 파일의 끝으로 이동한 후 계산 결과를 파일에 작성
+7. [파일 저장 예외처리] 파일을 저장하고 출력하는 중, 오류 발생 시 에러 메시지 출력 후 enum에 있는 값 반환
 */
 
 int main(int argc, char *argv[])
 {
-    int error_validate = input_validate(argc, argv);                      // 입력 유효성 검사
-    if (error_validate != ERROR_NONE)                                     // 0이 아니면 enum에서 설정한 return 값 출력
+    int error_validate = input_validate(argc, argv); // 입력 유효성 검사
+
+    if (error_validate != ERROR_NONE)                // 0이 아니면 enum에서 설정한 return 값 출력
     {
-        return error_validate;                                            // 유효성 검사 실패 시 enum에서 정의한 오류 코드 반환
+        return error_validate;                       // 유효성 검사 실패 시 enum에서 정의한 오류 코드 반환
     }
 
-    int first_operand  = atoi(argv[1]);                                   // 첫 번째 피연산자, 문자열을 정수로 변환
-    int second_operand = atoi(argv[3]);                                   // 두 번째 피연산자, 문자열을 정수로 변환
-    char operator      = argv[2][0];                                      // 연산자
+    int first_operand = atoi(argv[1]);               // 첫 번째 피연산자, 문자열을 정수로 변환
+    int second_operand = atoi(argv[3]);              // 두 번째 피연산자, 문자열을 정수로 변환
+    char operator = argv[2][0];                      // 연산자
 
-    int calc_result = calculate(first_operand, operator, second_operand); // +, -, X, / 연산자에 따라 계산하는 함수 호출
-    
-    // 오버플로우 및 언더플로우 발생 시 이상한 결과를 파일에 저장 하지 않기 위한 조건문 설정
-    if (calc_result != ERROR_NONE)
-    {
-        return calc_result;                                               // calculate 함수에서 오류가 발생하면 enum에서 설정한 값 반환
-    }
+    // calculate_and_save 함수가 입력 유효성 검사, 계산, 결과 저장 및 파일 쓰기 등 모두 처리
+    int calc_result = calculate_and_save(first_operand, operator, second_operand);
 
-    int file_save_result = save_result_to_file(first_operand, operator, second_operand);
-
-    if (file_save_result != ERROR_NONE)
-    {
-        return file_save_result;                                          // save_result_to_file 함수에서 오류가 발생하면 enum에서 설정한 값 반환
-    }
-
-    return ERROR_NONE;
+    return calc_result;                              // calculate_and_save 함수에서 오류가 발생하면 enum에서 설정한 값 반환
 }
