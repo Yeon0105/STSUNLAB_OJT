@@ -3,6 +3,8 @@
 #include <ctype.h>   // isdigit를 쓰기 위한 헤더 파일 선언
 #include <limits.h>  // INT_MAX, INT_MIN를 쓰기 위한 헤더 파일 선언 (-2,147,483,648 ~ 2,147,483,647)
 
+#define RESULT_FILE "cal_result.txt"
+
 // enum 이용하여 예외상황 처리
 typedef enum cal_result_type_e
 {
@@ -62,38 +64,38 @@ int my_strlen(char str[])
 }
 
 // 예외처리 함수
-int input_validate(int argc, char *argv[], int *first_operand, int *second_operand)
+int input_validate(int input_count, char **input_param, int *first_operand, int *second_operand)
 {
     // 인자 수 4보다 적으면 에러, 4인 이유는 한 개는 프로그램 이름을 포함하기 때문
-    if (argc < 4)
+    if (input_count < 4)
     {
         printf("Error, few operands.\n");
         return ERROR_LESS_THAN_4_OPERANDS;
     }
 
     // 인자 수 4보다 많으면 에러
-    if (argc > 4)
+    if (input_count > 4)
     {
         printf("Error, many operands.\n");
         return ERROR_MORE_THAN_4_OPERANDS;
     }
 
     // 첫 번째 피연산자가 숫자가 아닌 경우 에러
-    if (!check_number(argv[1]))
+    if (!check_number(input_param[1]))
     {
         printf("Error, first operand is not a number.\n");
         return ERROR_FIRST_OPERAND_NOT_NUM;
     }
 
     // 두 번째 피연산자가 숫자가 아닌 경우 에러
-    if (!check_number(argv[3]))
+    if (!check_number(input_param[3]))
     {
         printf("Error, second operand is not a number.\n");
         return ERROR_SECOND_OPERAND_NOT_NUM_;
     }
 
-    *first_operand  = atoi(argv[1]);  // 첫 번째 피연산자, 문자열을 정수로 변환
-    *second_operand = atoi(argv[3]);  // 두 번째 피연산자, 문자열을 정수로 변환
+    *first_operand  = atoi(input_param[1]);  // 첫 번째 피연산자, 문자열을 정수로 변환
+    *second_operand = atoi(input_param[3]);  // 두 번째 피연산자, 문자열을 정수로 변환
 
     // 피연산자가 int 범위를 벗어나면 에러
     if ((*first_operand > INT_MAX) || (*second_operand > INT_MAX))
@@ -108,14 +110,14 @@ int input_validate(int argc, char *argv[], int *first_operand, int *second_opera
     }
 
     // 연산자가 제대로 입력되었는지 확인, ++ -- 두개씩 입력 시 에러
-    if (argv[2][1] != '\0')
+    if (input_param[2][1] != '\0')
     {
         printf("Error, invalid operator.\n");
         return ERROR_INPUT_2_OPERATORS;
     }
 
     // 0으로 나눌 때 에러
-    if ((argv[2][0] == '/') && (*second_operand == 0))
+    if ((input_param[2][0] == '/') && (*second_operand == 0))
     {
         printf("Error, cannot be divided by 0.\n");
         return ERROR_NOT_DIVIDE_BY_0;
@@ -186,14 +188,14 @@ int save_result_to_file(char *result_string)
 
     // "r+" 모드로 파일을 열어서 파일이 없을 경우 파일을 생성
     // "r+" 모드는 기존의 내용이 존재할 경우, 기존의 내용을 지우지 않으면서 열기 때문에 기존 내용에 새로운 내용을 추가하거나 할 수 있다.
-    FILE *fp = fopen("cal_result.txt", "r+");
+    FILE *fp = fopen(RESULT_FILE, "r+");
 
     // "r+" 모드로 연 파일이 존재 하지 않으면 파일을 "w+" 모드로 열고, "w+" 모드로 연 파일이 존재하지 않으면 에러 출력
     // "w+" 모드는 기존의 내용이 존재할 경우, 기존의 내용을 모두 지우기 때문에 기존 파일에 덧붙여서 파일에 쓰고자 할 때 문제가 발생한다.
     if (fp == NULL)
     {
         // 파일이 없을 경우 "w+" 모드로 생성
-        fp = fopen("cal_result.txt", "w+");
+        fp = fopen(RESULT_FILE, "w+");
         if (fp == NULL)
         {
             printf("Error, file opening failed.\nCheck the file permissions.\n");
@@ -216,6 +218,7 @@ int save_result_to_file(char *result_string)
     if (fwrite(result_string, sizeof(char), len, fp) != len)
     {
         printf("Error, file writing failed.\nCheck the file permissions.\n");
+        fclose(fp);
         return ERROR_FWRITE_FAIL;
     }
 
@@ -223,6 +226,7 @@ int save_result_to_file(char *result_string)
     if (fwrite(newline, sizeof(char), 2, fp) != 2)
     {
         printf("Error, writing newline to file failed.\nCheck the file permissions.\n");
+        fclose(fp);
         return ERROR_FWRITE_FAIL;
     }
 
@@ -246,12 +250,12 @@ int save_result_to_file(char *result_string)
 7. [파일 저장 예외처리] 파일을 저장하고 출력하는 중, 오류 발생 시 에러 메시지 출력 후 enum에 있는 값 반환
 */
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
     int first_operand, second_operand = 0;           // 피연산자
-    double result                     = 0 ;          // 계산 결과 값을 저장하는 변수
+    double result                     = 0;           // 계산 결과 값을 저장하는 변수
     char operator                     = argv[2][0];  // 연산자
-    char result_string[200];                         // 결과를 문자열로 변환하여 저장할 버퍼
+    char result_string[20]            = {0};         // 결과를 문자열로 변환하여 저장할 버퍼
 
     int error_validate = input_validate(argc, argv, &first_operand, &second_operand); // 입력 유효성 검사
 
