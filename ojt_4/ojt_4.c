@@ -62,7 +62,7 @@ int my_strlen(char str[])
 }
 
 // 예외처리 함수
-int input_validate(int argc, char *argv[])
+int input_validate(int argc, char *argv[], int *first_operand, int *second_operand)
 {
     // 인자 수 4보다 적으면 에러, 4인 이유는 한 개는 프로그램 이름을 포함하기 때문
     if (argc < 4)
@@ -92,16 +92,16 @@ int input_validate(int argc, char *argv[])
         return ERROR_SECOND_OPERAND_NOT_NUM_;
     }
 
-    int first_operand  = atoi(argv[1]);  // 첫 번째 피연산자, 문자열을 정수로 변환
-    int second_operand = atoi(argv[3]);  // 두 번째 피연산자, 문자열을 정수로 변환
+    *first_operand  = atoi(argv[1]);  // 첫 번째 피연산자, 문자열을 정수로 변환
+    *second_operand = atoi(argv[3]);  // 두 번째 피연산자, 문자열을 정수로 변환
 
     // 피연산자가 int 범위를 벗어나면 에러
-    if ((first_operand > INT_MAX) || (second_operand > INT_MAX))
+    if ((*first_operand > INT_MAX) || (*second_operand > INT_MAX))
     {
         printf("Error, operand out of range for int type.\n");
         return ERROR_OPERAND_EXCEED_INT_RANGE;
     }
-    else if ((first_operand < INT_MIN) || (second_operand < INT_MIN))
+    else if ((*first_operand < INT_MIN) || (*second_operand < INT_MIN))
     {
         printf("Error, operand out of range for int type.\n");
         return ERROR_OPERAND_EXCEED_INT_RANGE;
@@ -115,7 +115,7 @@ int input_validate(int argc, char *argv[])
     }
 
     // 0으로 나눌 때 에러
-    if ((argv[2][0] == '/') && (second_operand == 0))
+    if ((argv[2][0] == '/') && (*second_operand == 0))
     {
         printf("Error, cannot be divided by 0.\n");
         return ERROR_NOT_DIVIDE_BY_0;
@@ -124,32 +124,26 @@ int input_validate(int argc, char *argv[])
     return ERROR_NONE;
 }
 
-// 계산기 처리 및 결과 파일 저장 함수
-int calculate_and_save(int first_operand, char operator, int second_operand)
+// 계산기 처리 함수
+int calculate(int first_operand, char operator, int second_operand, double *result, char *result_string)
 {
-    double result = 0.0;                    // 계산 결과 값을 저장하는 변수
-    int len       = 0;                      // 문자열 길이를 담는 변수
-    char result_string[200];                // 파일에 문자열 계산 결과값을 저장할 충분한 크기 버퍼 할당
-    char newline[2] = {0x0d, 0x0a};         // 윈도우 줄바꿈 \n 에 해당하는 hex 값
-    cal_result_type error_num = ERROR_NONE; // enum에 정의한 함수 반환값을 저장할 error_num 변수
-
     // +, -, X, / 연산 수행
     switch (operator)
     {
         case '+':
-            result = (double)first_operand + (double)second_operand;
+            *result = (double)first_operand + (double)second_operand;
             break;
 
         case '-':
-            result = (double)first_operand - (double)second_operand;
+            *result = (double)first_operand - (double)second_operand;
             break;
 
         case 'X':
-            result = (double)first_operand * (double)second_operand;
+            *result = (double)first_operand * (double)second_operand;
             break;
 
         case '/':
-            result = (double)first_operand / (double)second_operand;
+            *result = (double)first_operand / (double)second_operand;
             break;
 
         default:
@@ -158,30 +152,37 @@ int calculate_and_save(int first_operand, char operator, int second_operand)
     }
 
     // overflow, underflow 체크 후 에러메시지 출력
-    if (result > INT_MAX)
+    if (*result > INT_MAX)
     {
         printf("Error, data overflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
         return ERROR_DATA_OVERFLOW;
     }
-    if (result < INT_MIN)
+    if (*result < INT_MIN)
     {
         printf("Error, data underflow.\nPlease, input range of -2147483648 ~ 2147483647.\n");
         return ERROR_DATA_UNDERFLOW;
     }
 
-    // '/' 연산 결과 터미널 창에 출력 및 파일에 결과 저장
+    // 결과 출력 및 파일에 저장
     if (operator == '/')
     {
-        printf("%d %c %d = %g\n", first_operand, operator, second_operand, result); // %g 사용 시 소수점 이하 0이 모두 사라진 채 출력
-        sprintf(result_string, "%g", result);                                       // fwrite 쓰려면 정수를 문자열로 변환 필요 -> sprintf 사용
+        printf("%d %c %d = %g\n", first_operand, operator, second_operand, *result);
+        sprintf(result_string, "%g", *result);
     }
-
-    // '+,-,X' 연산 결과 터미널 창에 출력 및 파일에 결과 저장
     else
     {
-        printf("%d %c %d = %d\n", first_operand, operator, second_operand, (int)result);
-        sprintf(result_string, "%d", (int)result);
+        printf("%d %c %d = %d\n", first_operand, operator, second_operand, (int)*result);
+        sprintf(result_string, "%d", (int)*result);
     }
+
+    return ERROR_NONE;
+}
+
+// 파일 저장 함수
+int save_result_to_file(char *result_string)
+{
+    int len         = 0;                    // 문자열 길이를 담는 변수
+    char newline[2] = {0x0d, 0x0a};         // 윈도우 줄바꿈 \n 에 해당하는 hex 값
 
     // "r+" 모드로 파일을 열어서 파일이 없을 경우 파일을 생성
     // "r+" 모드는 기존의 내용이 존재할 경우, 기존의 내용을 지우지 않으면서 열기 때문에 기존 내용에 새로운 내용을 추가하거나 할 수 있다.
@@ -202,7 +203,7 @@ int calculate_and_save(int first_operand, char operator, int second_operand)
     else
     {
         // 파일이 있을 경우 파일 끝으로 이동
-        if(fseek(fp, 0, SEEK_END) != 0)
+        if (fseek(fp, 0, SEEK_END) != 0)
         {
             printf("Error, file seeking failed.\nCheck the file permissions.\n");
             return ERROR_FSEEK_FAIL;
@@ -247,19 +248,33 @@ int calculate_and_save(int first_operand, char operator, int second_operand)
 
 int main(int argc, char *argv[])
 {
-    int error_validate = input_validate(argc, argv); // 입력 유효성 검사
+    int first_operand, second_operand = 0;           // 피연산자
+    double result                     = 0 ;          // 계산 결과 값을 저장하는 변수
+    char operator                     = argv[2][0];  // 연산자
+    char result_string[200];                         // 결과를 문자열로 변환하여 저장할 버퍼
+
+    int error_validate = input_validate(argc, argv, &first_operand, &second_operand); // 입력 유효성 검사
 
     if (error_validate != ERROR_NONE)                // 0이 아니면 enum에서 설정한 return 값 출력
     {
         return error_validate;                       // 유효성 검사 실패 시 enum에서 정의한 오류 코드 반환
     }
 
-    int first_operand = atoi(argv[1]);               // 첫 번째 피연산자, 문자열을 정수로 변환
-    int second_operand = atoi(argv[3]);              // 두 번째 피연산자, 문자열을 정수로 변환
-    char operator = argv[2][0];                      // 연산자
+    // calculate 함수에서 연산 처리
+    int calc_result_cause = calculate(first_operand, operator, second_operand, &result, result_string);
 
-    // calculate_and_save 함수가 입력 유효성 검사, 계산, 결과 저장 및 파일 쓰기 등 모두 처리
-    int calc_result = calculate_and_save(first_operand, operator, second_operand);
+    if (calc_result_cause != ERROR_NONE)
+    {
+        return calc_result_cause;
+    }
 
-    return calc_result;                              // calculate_and_save 함수에서 오류가 발생하면 enum에서 설정한 값 반환
+    // save_result_to_file 함수에서 결과 출력 및 파일 저장
+    int save_result_cause = save_result_to_file(result_string);
+
+    if (save_result_cause != ERROR_NONE)
+    {
+        return save_result_cause;                    // save_result_cause 함수에서 오류가 발생하면 enum에서 설정한 값 반환
+    }
+
+    return ERROR_NONE;
 }
