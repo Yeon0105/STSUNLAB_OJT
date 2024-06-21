@@ -208,6 +208,7 @@ int save_result_to_file(char *result_string)
         if (fseek(fp, 0, SEEK_END) != 0)
         {
             printf("Error, file seeking failed.\nCheck the file permissions.\n");
+            fclose(fp);
             return ERROR_FSEEK_FAIL;
         }
     }
