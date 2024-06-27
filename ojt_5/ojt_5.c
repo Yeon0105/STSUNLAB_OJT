@@ -29,7 +29,8 @@ typedef enum error_code_e
     ERROR_FTELL_FAIL             = 6,
     ERROR_FWRITE_FAIL            = 7,
     ERROR_FREAD_FAIL             = 8,
-    ERROR_FCLOSE_FAIL            = 9
+    ERROR_FCLOSE_FAIL            = 9,
+    ERROR_INVALID_FILE_DIV       = 10
 } error_code;
 
 // 파일 처리 관련 정보를 담는 구조체
@@ -166,11 +167,27 @@ error_code parse_input(int input_argc, char **input_argv, divider *divider)
         }
     }
 
+    // 입력된 나눌 갯수가 유효한 정수인지 확인
+    for (int i = 0; i < strlen(input_argv[2]); i++)
+    {
+        if (!isdigit(input_argv[2][i]))
+        {
+            printf("Error, file divide count input check! (argv[2] = %s)\n", input_argv[2]);
+            return ERROR_INVALID_FILE_DIV;
+        }
+    }
+
     // ./ojt_5 x.bin 4 1000 입력한 것을 구조체에 차례로 저장
     divider->file_var.file_path = input_argv[1];                             // 파일경로 저장
     divider->file_var.file_div  = atoi(input_argv[2]);                       // 문자열을 정수로 변환 후 파일 나누는 갯수 저장
     divider->file_var.heap_size = atoi(input_argv[3]);                       // 문자열을 정수로 변환 후 힙 메모리 크기 저장
     divider->file_var.path_len  = strlen(divider->file_var.file_path);       //파일 경로 문자열 길이 구하기
+
+    if (divider->file_var.file_div <= 0)
+    {
+        printf("Error, file divide count input check! (argv[2] = %s)\n", input_argv[2]);
+        return ERROR_INVALID_FILE_DIV;
+    }
 
    if (divider->file_var.heap_size <= 0)
     {
