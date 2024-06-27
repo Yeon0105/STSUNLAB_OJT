@@ -170,8 +170,14 @@ error_code parse_input(int input_argc, char **input_argv, divider *divider)
     divider->file_var.file_path = input_argv[1];                             // 파일경로 저장
     divider->file_var.file_div  = atoi(input_argv[2]);                       // 문자열을 정수로 변환 후 파일 나누는 갯수 저장
     divider->file_var.heap_size = atoi(input_argv[3]);                       // 문자열을 정수로 변환 후 힙 메모리 크기 저장
-    divider->file_var.path_len  = strlen(divider->file_var.file_path); //파일 경로 문자열 길이 구하기
+    divider->file_var.path_len  = strlen(divider->file_var.file_path);       //파일 경로 문자열 길이 구하기
 
+   if (divider->file_var.heap_size <= 0)
+    {
+        printf("Error, heap size input check! (argv[3] = %s)\n", input_argv[3]);
+        return ERROR_INVALID_HEAP_SIZE;
+    }
+    
     return SUCCESS;
 }
 
