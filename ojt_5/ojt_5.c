@@ -190,6 +190,12 @@ error_code check_heap_memory(divider *divider)
         printf("Error, memory allocation failed!\n");
         return ERROR_MEMORY_ALLOCATION_FAIL;
     }
+    
+    // 버퍼가 메모리를 쓰고있다면 free
+    if (divider->buffer != NULL)
+    {
+        free(divider->buffer);
+    }
     return SUCCESS;
 }
 
@@ -198,14 +204,14 @@ error_code get_original_file_size(divider *divider)
 {
     // 파일 읽기 모드로 열기
     divider->file_var.input_file = fopen(divider->file_var.file_path, "rb");
-    if (divider->file_var.input_file == NULL)
+    if (divider->file_var.input_file == F_SUCCESS)
     {
         printf("Error, fopen failed!\n");
         return ERROR_FOPEN_FAIL;
     }
 
     // 파일 포인터를 끝으로 이동
-    if (fseek(divider->file_var.input_file, 0, SEEK_END) != 0)
+    if (fseek(divider->file_var.input_file, 0, SEEK_END) != F_SUCCESS)
     {
         printf("Error, fseek failed!\n");
         fclose(divider->file_var.input_file);
@@ -222,7 +228,7 @@ error_code get_original_file_size(divider *divider)
     }
 
     //파일 포인터를 다시 처음으로 이동
-    if (fseek(divider->file_var.input_file, 0, SEEK_SET) != 0)
+    if (fseek(divider->file_var.input_file, 0, SEEK_SET) != F_SUCCESS)
     {
         printf("Error, fseek failed!\n");
         fclose(divider->file_var.input_file);
@@ -316,7 +322,7 @@ error_code divide_file(divider *divider)
             }
         }
 
-        if (fclose(divider->file_var.output_file) != 0)
+        if (fclose(divider->file_var.output_file) != F_SUCCESS)
         {
             printf("Error, closing failed!\n");
             free(divider->buffer);
@@ -371,7 +377,7 @@ error_code divide_file(divider *divider)
         }
 
         // 출력 파일 닫기
-        if (fclose(divider->file_var.output_file) != 0)
+        if (fclose(divider->file_var.output_file) != F_SUCCESS)
         {
             printf("Error, fclose failed!\n");
             free(divider->buffer);
@@ -380,15 +386,17 @@ error_code divide_file(divider *divider)
     }
 
     // 입력 파일 닫기
-    if (fclose(divider->file_var.input_file) != 0)
+    if (fclose(divider->file_var.input_file) != F_SUCCESS)
     {
         printf("Error, fclose failed!\n");
         free(divider->buffer);
         return ERROR_FCLOSE_FAIL;
     }
 
-    // 할당된 힙 메모리 해제
-    free(divider->buffer);
+    // 버퍼가 메모리를 쓰고있다면 free
+    if (divider->buffer != NULL) {
+        free(divider->buffer);
+    }
 
     return SUCCESS;
 }

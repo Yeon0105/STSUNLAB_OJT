@@ -1,6 +1,8 @@
 #ifndef OJT_5_H
 #define OJT_5_H
 
+#define F_SUCCESS 0
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
