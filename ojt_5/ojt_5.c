@@ -30,7 +30,8 @@ typedef enum error_code_e
     ERROR_FWRITE_FAIL            = 7,
     ERROR_FREAD_FAIL             = 8,
     ERROR_FCLOSE_FAIL            = 9,
-    ERROR_INVALID_FILE_DIV       = 10
+    ERROR_INVALID_FILE_DIV       = 10,
+    ERROR_FILE_DIV_EXCEED        = 11
 } error_code;
 
 // 파일 처리 관련 정보를 담는 구조체
@@ -302,10 +303,19 @@ error_code get_original_file_size(divider *divider)
 }
 
 // 파일 사이즈 및 남은 byte 크기 구함
-void calculate_division_info(divider *divider)
+error_code calculate_division_info(divider *divider)
 {
+    // 파일 크기보다 큰 분할 개수 입력 시 오류 처리
+    if (divider->file_var.file_div > divider->info.org_size)
+    {
+        printf("Error, file divide count exceeds file size!\n");
+        return ERROR_FILE_DIV_EXCEED;
+    }
+
     divider->info.div_size   = divider->info.org_size / divider->file_var.file_div;
     divider->info.div_remain = divider->info.org_size % divider->file_var.file_div;
+
+    return SUCCESS;
 }
 
 // 파일을 지정된 수만큼 분할하여 새로운 파일로 저장 ex) x_1.bin x_2.bin
@@ -480,7 +490,12 @@ error_code main(int argc, char **argv)
         return status;
     }
 
-    calculate_division_info(&file_divider);
+    status = calculate_division_info(&file_divider);
+    if (status != SUCCESS)
+    {
+        return status;
+    }
+
     print_original_file_size_info(&file_divider);
 
     status = divide_file(&file_divider);
