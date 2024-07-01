@@ -150,7 +150,8 @@ error_code parse_input(int input_argc, char **input_argv, divider *divider)
     // 문자열에서 '.' 문자의 위치를 찾아 인덱스 값 저장
     divider->file_var.file_dot_idx = -1;
 
-    for (int i = 0; i < divider->file_var.path_len; i++)
+    // 파일 경로의 끝부터 검색을 시작해 '.' 문자를 찾도록 변경, 파일 맨 뒤에 있는 확장자를 찾기 수월
+    for (int i = divider->file_var.path_len - 1; i >= 0; i--)
     {
         if (divider->file_var.file_path[i] == '.')
         {
