@@ -190,13 +190,7 @@ error_code check_heap_memory(divider *divider)
         printf("Error, memory allocation failed!\n");
         return ERROR_MEMORY_ALLOCATION_FAIL;
     }
-    
-    // 버퍼가 메모리를 쓰고있다면 free
-    if (divider->buffer != NULL)
-    {
-        free(divider->buffer);
-    }
-    return SUCCESS;
+    return success;
 }
 
 // 원본 파일의 크기 구함
@@ -257,14 +251,6 @@ error_code calculate_division_info(divider *divider)
 // 파일을 지정된 수만큼 분할하여 새로운 파일로 저장 ex) x_1.bin x_2.bin
 error_code divide_file(divider *divider)
 {
-    // 힙 메모리 할당
-    divider->buffer = (char *)malloc(divider->file_var.heap_size);
-    if (divider->buffer == NULL)
-    {
-        printf("Error, malloc() fail\n");
-        fclose(divider->file_var.input_file);
-        return ERROR_MEMORY_ALLOCATION_FAIL;
-    }
 
     // 파일 분할
     for (int i = 0; i < divider->file_var.file_div; i++)
@@ -285,7 +271,6 @@ error_code divide_file(divider *divider)
         {
             printf("Error, file open failed!\n");
             fclose(divider->file_var.input_file);
-            free(divider->buffer);
             return ERROR_FOPEN_FAIL;
         }
 
@@ -307,7 +292,6 @@ error_code divide_file(divider *divider)
                 printf("Error, fread failed!\n");
                 fclose(divider->file_var.input_file);
                 fclose(divider->file_var.output_file);
-                free(divider->buffer);
                 return ERROR_FREAD_FAIL;
             }
 
@@ -317,7 +301,6 @@ error_code divide_file(divider *divider)
                 printf("Error, fwrite failed!\n");
                 fclose(divider->file_var.input_file);
                 fclose(divider->file_var.output_file);
-                free(divider->buffer);
                 return ERROR_FWRITE_FAIL;
             }
         }
@@ -325,7 +308,6 @@ error_code divide_file(divider *divider)
         if (fclose(divider->file_var.output_file) != F_SUCCESS)
         {
             printf("Error, closing failed!\n");
-            free(divider->buffer);
             return ERROR_FCLOSE_FAIL;
         }
     }
@@ -349,7 +331,6 @@ error_code divide_file(divider *divider)
         {
             printf("Error, file open failed!\n");
             fclose(divider->file_var.input_file);
-            free(divider->buffer);
             return ERROR_FOPEN_FAIL;
         }
 
@@ -362,7 +343,6 @@ error_code divide_file(divider *divider)
             printf("Error, fread failed!\n");
             fclose(divider->file_var.input_file);
             fclose(divider->file_var.output_file);
-            free(divider->buffer);
             return ERROR_FREAD_FAIL;
         }
 
@@ -372,7 +352,6 @@ error_code divide_file(divider *divider)
             printf("Error, fwrite failed!\n");
             fclose(divider->file_var.input_file);
             fclose(divider->file_var.output_file);
-            free(divider->buffer);
             return ERROR_FWRITE_FAIL;
         }
 
@@ -380,7 +359,6 @@ error_code divide_file(divider *divider)
         if (fclose(divider->file_var.output_file) != F_SUCCESS)
         {
             printf("Error, fclose failed!\n");
-            free(divider->buffer);
             return ERROR_FCLOSE_FAIL;
         }
     }
@@ -389,13 +367,7 @@ error_code divide_file(divider *divider)
     if (fclose(divider->file_var.input_file) != F_SUCCESS)
     {
         printf("Error, fclose failed!\n");
-        free(divider->buffer);
         return ERROR_FCLOSE_FAIL;
-    }
-
-    // 버퍼가 메모리를 쓰고있다면 free
-    if (divider->buffer != NULL) {
-        free(divider->buffer);
     }
 
     return SUCCESS;
@@ -445,6 +417,12 @@ error_code main(int argc, char **argv)
 
     print_divide_info(&file_divider);
     print_divide_process(&file_divider);
+
+    // 버퍼가 메모리를 쓰고있다면 free
+    if (file_divider.buffer != NULL)
+    {
+        free(file_divider.buffer);
+    }
 
     return SUCCESS;
 }
