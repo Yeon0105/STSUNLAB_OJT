@@ -190,7 +190,7 @@ error_code check_heap_memory(divider *divider)
         printf("Error, memory allocation failed!\n");
         return ERROR_MEMORY_ALLOCATION_FAIL;
     }
-    return success;
+    return SUCCESS;
 }
 
 // 원본 파일의 크기 구함
@@ -373,6 +373,26 @@ error_code divide_file(divider *divider)
     return SUCCESS;
 }
 
+// 메모리 해제
+void memory_free(divider *divider)
+{
+    if (divider->file_var.file_name != NULL)
+    {
+        free(divider->file_var.file_name);
+    }
+
+    if (divider->file_var.file_ext != NULL)
+    {
+        free(divider->file_var.file_ext);
+    }
+
+    if (divider->buffer != NULL)
+    {
+        free(divider->buffer);
+    }
+}
+
+
 error_code main(int argc, char **argv)
 {
     divider file_divider;
@@ -418,11 +438,8 @@ error_code main(int argc, char **argv)
     print_divide_info(&file_divider);
     print_divide_process(&file_divider);
 
-    // 버퍼가 메모리를 쓰고있다면 free
-    if (file_divider.buffer != NULL)
-    {
-        free(file_divider.buffer);
-    }
+    // 메모리해제
+    memory_free(&file_divider);
 
     return SUCCESS;
 }
