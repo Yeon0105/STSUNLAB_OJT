@@ -204,7 +204,7 @@ error_code get_original_file_size(divider *divider)
 {
     // 파일 읽기 모드로 열기
     divider->file_var.input_file = fopen(divider->file_var.file_path, "rb");
-    if (!divider->file_var.input_file)
+    if (divider->file_var.input_file == NULL)
     {
         printf("Error, fopen failed!\n");
         return ERROR_FOPEN_FAIL;
