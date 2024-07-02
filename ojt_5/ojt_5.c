@@ -103,29 +103,35 @@ void print_divide_process(divider *divider)
 // 프로그램 실행 인자를 Divider 구조체에 저장. 
 error_code parse_input(int input_argc, char **input_argv, divider *divider)
 {
-    if (input_argc != 4)
+    int error_detect = FALSE;
+    error_code error_cause = SUCCESS;
+
+    if ((!error_detect) && (input_argc != 4))
     {
         printf("Error, invalid arguments!\n");
-        return ERROR_INVALID_ARGUMENTS;
+        error_detect = TRUE;
+        error_cause = ERROR_INVALID_ARGUMENTS;
     }
 
     // 입력된 heap size가 유효한 정수인지 확인
     for (int i = 0; i < strlen(input_argv[3]); i++)
     {
-        if (!isdigit(input_argv[3][i]))
+        if ((!error_detect) && (!isdigit(input_argv[3][i])))
         {
             printf("Error, heap size input check! (argv[3] = %s)\n", input_argv[3]);
-            return ERROR_INVALID_HEAP_SIZE;
+            error_detect = TRUE;
+            error_cause = ERROR_INVALID_HEAP_SIZE;
         }
     }
 
     // 입력된 나눌 갯수가 유효한 정수인지 확인
     for (int i = 0; i < strlen(input_argv[2]); i++)
     {
-        if (!isdigit(input_argv[2][i]))
+        if ((!error_detect) && (!isdigit(input_argv[2][i])))
         {
             printf("Error, file divide count input check! (argv[2] = %s)\n", input_argv[2]);
-            return ERROR_INVALID_FILE_DIV;
+            error_detect = TRUE;
+            error_cause = ERROR_INVALID_FILE_DIV;
         }
     }
 
@@ -135,16 +141,18 @@ error_code parse_input(int input_argc, char **input_argv, divider *divider)
     divider->file_var.heap_size = atoi(input_argv[3]);                       // 문자열을 정수로 변환 후 힙 메모리 크기 저장
     divider->file_var.path_len  = strlen(divider->file_var.file_path);       //파일 경로 문자열 길이 구하기
 
-    if (divider->file_var.file_div <= 0)
+    if ((!error_detect) && (divider->file_var.file_div <= 0))
     {
         printf("Error, file divide count input check! (argv[2] = %s)\n", input_argv[2]);
-        return ERROR_INVALID_FILE_DIV;
+        error_detect = TRUE;
+        error_cause = ERROR_INVALID_FILE_DIV;
     }
 
-    if (divider->file_var.heap_size <= 0)
+    if ((!error_detect) && (divider->file_var.heap_size <= 0))
     {
         printf("Error, heap size input check! (argv[3] = %s)\n", input_argv[3]);
-        return ERROR_INVALID_HEAP_SIZE;
+        error_detect = TRUE;
+        error_cause = ERROR_INVALID_HEAP_SIZE;
     }
 
     // 문자열에서 '.' 문자의 위치를 찾아 인덱스 값 저장
@@ -168,90 +176,112 @@ error_code parse_input(int input_argc, char **input_argv, divider *divider)
         divider->file_var.ext_len  = divider->file_var.path_len - divider->file_var.file_dot_idx - 1;
 
         // '.' 문자를 기준으로 파일 이름과 확장자를 분리하여 저장
-        divider->file_var.file_name = strndup(divider->file_var.file_path, divider->file_var.file_dot_idx);
-        divider->file_var.file_ext  = strdup(&divider->file_var.file_path[divider->file_var.file_dot_idx + 1]);
+        divider->file_var.file_name = (char *)malloc(divider->file_var.name_len + 1);
+        divider->file_var.file_ext  = (char *)malloc(divider->file_var.ext_len + 1);
+
+        // "%.*s" 를 사용하여 파일 이름 길이만큼 출력
+        sprintf(divider->file_var.file_name, "%.*s", divider->file_var.name_len, divider->file_var.file_path);
+        sprintf(divider->file_var.file_ext, "%s", &divider->file_var.file_path[divider->file_var.file_dot_idx + 1]);
     }
     else
     {
         // 확장자가 없는 경우 파일 이름만 저장
-        divider->file_var.file_name = strdup(divider->file_var.file_path);
+        divider->file_var.file_name = (char *)malloc(divider->file_var.path_len + 1);
         divider->file_var.file_ext = NULL;
         divider->file_var.name_len = divider->file_var.path_len;
-    }
 
-    return SUCCESS;
+        sprintf(divider->file_var.file_name, "%s", divider->file_var.file_path);
+    }
+    return error_cause;
 }
 
 // 힙 메모리 할당 후 할당 실패 시 에러메시지 출력
 error_code check_heap_memory(divider *divider)
 {
+    int error_detect = FALSE;
+    error_code error_cause = SUCCESS;
+
     divider->buffer = (char *)malloc(divider->file_var.heap_size);
-    if (divider->buffer == NULL)
+    if ((!error_detect) && (divider->buffer == NULL))
     {
         printf("Error, memory allocation failed!\n");
-        return ERROR_MEMORY_ALLOCATION_FAIL;
+        error_detect = TRUE;
+        error_cause = ERROR_MEMORY_ALLOCATION_FAIL;
     }
-    return SUCCESS;
+    return error_cause;
 }
 
 // 원본 파일의 크기 구함
 error_code get_original_file_size(divider *divider)
 {
+    int error_detect = FALSE;
+    error_code error_cause = SUCCESS;
+
     // 파일 읽기 모드로 열기
     divider->file_var.input_file = fopen(divider->file_var.file_path, "rb");
-    if (divider->file_var.input_file == NULL)
+    if ((!error_detect) && (divider->file_var.input_file == NULL))
     {
         printf("Error, fopen failed!\n");
-        return ERROR_FOPEN_FAIL;
+        error_detect = TRUE;
+        error_cause = ERROR_FOPEN_FAIL;
     }
 
     // 파일 포인터를 끝으로 이동
-    if (fseek(divider->file_var.input_file, 0, SEEK_END) != F_SUCCESS)
+    if ((!error_detect) && (fseek(divider->file_var.input_file, 0, SEEK_END) != F_SUCCESS))
     {
         printf("Error, fseek failed!\n");
+        error_detect = TRUE;
+        error_cause = ERROR_FSEEK_FAIL;
         fclose(divider->file_var.input_file);
-        return ERROR_FSEEK_FAIL;
     }
 
     // 파일 크기 계산
     divider->info.org_size = ftell(divider->file_var.input_file);
-    if (divider->info.org_size == -1)
+    if ((!error_detect) && (divider->info.org_size == -1))
     {
         printf("Error, ftell failed!\n");
+        error_detect = TRUE;
+        error_cause = ERROR_FTELL_FAIL;
         fclose(divider->file_var.input_file);
-        return ERROR_FTELL_FAIL;
     }
 
     //파일 포인터를 다시 처음으로 이동
-    if (fseek(divider->file_var.input_file, 0, SEEK_SET) != F_SUCCESS)
+    if ((!error_detect) && (fseek(divider->file_var.input_file, 0, SEEK_SET) != F_SUCCESS))
     {
         printf("Error, fseek failed!\n");
+        error_detect = TRUE;
+        error_cause = ERROR_FTELL_FAIL;ERROR_FSEEK_FAIL;
         fclose(divider->file_var.input_file);
-        return ERROR_FSEEK_FAIL;
     }
 
-    return SUCCESS;
+    return error_cause;
 }
 
 // 파일 사이즈 및 남은 byte 크기 구함
 error_code calculate_division_info(divider *divider)
 {
+    int error_detect = FALSE;
+    error_code error_cause = SUCCESS;
+
     // 파일 크기보다 큰 분할 개수 입력 시 오류 처리
-    if (divider->file_var.file_div > divider->info.org_size)
+    if ((!error_detect) && (divider->file_var.file_div > divider->info.org_size))
     {
         printf("Error, file divide count exceeds file size!\n");
-        return ERROR_FILE_DIV_EXCEED;
+        error_detect = TRUE;
+        error_cause = ERROR_FILE_DIV_EXCEED;
     }
 
     divider->info.div_size   = divider->info.org_size / divider->file_var.file_div;
     divider->info.div_remain = divider->info.org_size % divider->file_var.file_div;
 
-    return SUCCESS;
+    return error_cause;
 }
 
 // 파일을 지정된 수만큼 분할하여 새로운 파일로 저장 ex) x_1.bin x_2.bin
 error_code divide_file(divider *divider)
 {
+    int error_detect = FALSE;
+    error_code error_cause = SUCCESS;
 
     // 파일 분할
     for (int i = 0; i < divider->file_var.file_div; i++)
@@ -268,11 +298,11 @@ error_code divide_file(divider *divider)
 
         // 출력 파일 열기
         divider->file_var.output_file = fopen(divider->file_var.output_file_name, "wb");
-        if (divider->file_var.output_file == NULL)
+        if ((!error_detect) && (divider->file_var.output_file == NULL))
         {
-            printf("Error, file open failed!\n");
-            fclose(divider->file_var.input_file);
-            return ERROR_FOPEN_FAIL;
+            printf("Error, fopen failed!\n");
+            error_detect = TRUE;
+            error_cause = ERROR_FOPEN_FAIL;
         }
 
         // 분할된 파일 크기만큼 데이터 읽기 및 쓰기
@@ -288,28 +318,31 @@ error_code divide_file(divider *divider)
             }
 
             divider->file_var.byte_read = fread(divider->buffer, 1, divider->file_var.byte_to_read, divider->file_var.input_file);
-            if (divider->file_var.byte_read != divider->file_var.byte_to_read)
+            if ((!error_detect) && (divider->file_var.byte_read != divider->file_var.byte_to_read))
             {
                 printf("Error, fread failed!\n");
+                error_detect = TRUE;
+                error_cause = ERROR_FREAD_FAIL;
                 fclose(divider->file_var.input_file);
                 fclose(divider->file_var.output_file);
-                return ERROR_FREAD_FAIL;
             }
 
             divider->file_var.byte_written = fwrite(divider->buffer, 1, divider->file_var.byte_read, divider->file_var.output_file);
-            if (divider->file_var.byte_written != divider->file_var.byte_read)
+            if ((!error_detect) && (divider->file_var.byte_written != divider->file_var.byte_read))
             {
                 printf("Error, fwrite failed!\n");
+                error_detect = TRUE;
+                error_cause = ERROR_FWRITE_FAIL;
                 fclose(divider->file_var.input_file);
                 fclose(divider->file_var.output_file);
-                return ERROR_FWRITE_FAIL;
             }
         }
 
-        if (fclose(divider->file_var.output_file) != F_SUCCESS)
+        if ((!error_detect) && (fclose(divider->file_var.output_file) != F_SUCCESS))
         {
             printf("Error, closing failed!\n");
-            return ERROR_FCLOSE_FAIL;
+            error_detect = TRUE;
+            error_cause = ERROR_FCLOSE_FAIL;
         }
     }
 
@@ -328,50 +361,54 @@ error_code divide_file(divider *divider)
 
         // 출력 파일 열기
         divider->file_var.output_file = fopen(divider->file_var.output_file_name, "wb");
-        if (divider->file_var.output_file == NULL)
+        if ((!error_detect) && (divider->file_var.output_file == NULL))
         {
             printf("Error, file open failed!\n");
-            fclose(divider->file_var.input_file);
-            return ERROR_FOPEN_FAIL;
+            error_detect = TRUE;
+            error_cause = ERROR_FOPEN_FAIL;
         }
 
         // 남은 바이트 쓰기
         divider->file_var.byte_to_read = divider->info.div_remain;
 
         divider->file_var.byte_read = fread(divider->buffer, 1, divider->file_var.byte_to_read, divider->file_var.input_file);
-        if (divider->file_var.byte_read != divider->file_var.byte_to_read)
+        if ((!error_detect) && (divider->file_var.byte_read != divider->file_var.byte_to_read))
         {
             printf("Error, fread failed!\n");
+            error_detect = TRUE;
+            error_cause = ERROR_FREAD_FAIL;
             fclose(divider->file_var.input_file);
             fclose(divider->file_var.output_file);
-            return ERROR_FREAD_FAIL;
         }
 
         divider->file_var.byte_written = fwrite(divider->buffer, 1, divider->file_var.byte_read, divider->file_var.output_file);
-        if (divider->file_var.byte_written != divider->file_var.byte_read)
+        if ((!error_detect) && (divider->file_var.byte_written != divider->file_var.byte_read))
         {
             printf("Error, fwrite failed!\n");
+            error_detect = TRUE;
+            error_cause = ERROR_FWRITE_FAIL;
             fclose(divider->file_var.input_file);
             fclose(divider->file_var.output_file);
-            return ERROR_FWRITE_FAIL;
         }
 
         // 출력 파일 닫기
-        if (fclose(divider->file_var.output_file) != F_SUCCESS)
+        if ((!error_detect) && (fclose(divider->file_var.output_file) != F_SUCCESS))
         {
             printf("Error, fclose failed!\n");
-            return ERROR_FCLOSE_FAIL;
+            error_detect = TRUE;
+            error_cause = ERROR_FCLOSE_FAIL;
         }
     }
 
     // 입력 파일 닫기
-    if (fclose(divider->file_var.input_file) != F_SUCCESS)
+    if ((!error_detect) && (fclose(divider->file_var.input_file) != F_SUCCESS))
     {
         printf("Error, fclose failed!\n");
-        return ERROR_FCLOSE_FAIL;
+        error_detect = TRUE;
+        error_cause = ERROR_FCLOSE_FAIL;
     }
 
-    return SUCCESS;
+    return error_cause;
 }
 
 // 메모리 해제
@@ -393,47 +430,61 @@ void memory_free(divider *divider)
     }
 }
 
-
 error_code main(int argc, char **argv)
 {
     divider file_divider;
     memset(&file_divider, 0, sizeof(divider));
-    error_code status = SUCCESS;
+    
+    int error_detect = FALSE;
+    error_code error_cause = SUCCESS;
 
-    status = parse_input(argc, argv, &file_divider);
-    if (status != SUCCESS)
+    error_cause = parse_input(argc, argv, &file_divider);
+    if ((!error_detect) && (error_cause != SUCCESS))
     {
-        return status;
+        error_detect = TRUE;
+        memory_free(&file_divider);
+        return error_cause;
     }
 
     print_divider(&file_divider, argc, argv);
 
-    status = check_heap_memory(&file_divider);
-    if (status != SUCCESS)
+    error_cause = check_heap_memory(&file_divider);
+    if ((!error_detect) && (error_cause != SUCCESS))
     {
-        return status;
+        error_detect = TRUE;
+        memory_free(&file_divider);
+        return error_cause;
     }
     print_memory_allocation(&file_divider);
     print_file_info(&file_divider);
 
-    status = get_original_file_size(&file_divider);
-    if (status != SUCCESS)
+    error_cause = get_original_file_size(&file_divider);
+    if ((!error_detect) && (error_cause != SUCCESS))
     {
-        return status;
+        error_detect = TRUE;
+        fclose(file_divider.file_var.input_file);
+        memory_free(&file_divider);
+        return error_cause;
     }
 
-    status = calculate_division_info(&file_divider);
-    if (status != SUCCESS)
+    error_cause = calculate_division_info(&file_divider);
+    if ((!error_detect) && (error_cause != SUCCESS))
     {
-        return status;
+        error_detect = TRUE;
+        memory_free(&file_divider);
+        return error_cause;
     }
 
     print_original_file_size_info(&file_divider);
 
-    status = divide_file(&file_divider);
-    if (status != SUCCESS)
+    error_cause = divide_file(&file_divider);
+    if ((!error_detect) && (error_cause != SUCCESS))
     {
-        return status;
+        error_detect = TRUE;
+        fclose(file_divider.file_var.input_file);
+        fclose(file_divider.file_var.output_file);
+        memory_free(&file_divider);
+        return error_cause;
     }
 
     print_divide_info(&file_divider);

@@ -1,13 +1,3 @@
-#ifndef OJT_5_H
-#define OJT_5_H
-
-#define F_SUCCESS 0
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-
 /*
 [enum 사용] enum type을 이용하여 각 예외처리 상황의 return 값 설정
 [구조체 정의] 지역변수와 전역변수를 대신할 구조체 정의
@@ -21,6 +11,19 @@
 [함수 작성] 파일을 분할하여 저장하는 함수 작성
 [메인 함수] 메인함수에서 위 함수들 호출
 */
+
+#ifndef OJT_5_H
+#define OJT_5_H
+
+#define TRUE  1
+#define FALSE 0
+
+#define F_SUCCESS 0
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 // 예외 상황 처리를 위한 enum 정의
 typedef enum error_code_e {
