@@ -298,10 +298,9 @@ error_code divide_file(divider *divider)
 
         // 출력 파일 열기
         divider->file_var.output_file = fopen(divider->file_var.output_file_name, "wb");
-        if ((!error_detect) && (divider->file_var.output_file == NULL))
+        if (divider->file_var.output_file == NULL)
         {
             printf("Error, fopen failed!\n");
-            error_detect = TRUE;
             error_cause = ERROR_FOPEN_FAIL;
         }
 
@@ -318,31 +317,30 @@ error_code divide_file(divider *divider)
             }
 
             divider->file_var.byte_read = fread(divider->buffer, 1, divider->file_var.byte_to_read, divider->file_var.input_file);
-            if ((!error_detect) && (divider->file_var.byte_read != divider->file_var.byte_to_read))
+            if (divider->file_var.byte_read != divider->file_var.byte_to_read)
             {
                 printf("Error, fread failed!\n");
-                error_detect = TRUE;
                 error_cause = ERROR_FREAD_FAIL;
-                fclose(divider->file_var.input_file);
-                fclose(divider->file_var.output_file);
             }
 
             divider->file_var.byte_written = fwrite(divider->buffer, 1, divider->file_var.byte_read, divider->file_var.output_file);
-            if ((!error_detect) && (divider->file_var.byte_written != divider->file_var.byte_read))
+            if (divider->file_var.byte_written != divider->file_var.byte_read)
             {
                 printf("Error, fwrite failed!\n");
-                error_detect = TRUE;
                 error_cause = ERROR_FWRITE_FAIL;
-                fclose(divider->file_var.input_file);
-                fclose(divider->file_var.output_file);
             }
         }
 
-        if ((!error_detect) && (fclose(divider->file_var.output_file) != F_SUCCESS))
+        if (fclose(divider->file_var.output_file) != F_SUCCESS)
         {
             printf("Error, closing failed!\n");
-            error_detect = TRUE;
             error_cause = ERROR_FCLOSE_FAIL;
+        }
+        
+        // 에러가 발생하면 break;
+        if(error_cause != SUCCESS)
+        {
+            break;
         }
     }
 
@@ -377,8 +375,6 @@ error_code divide_file(divider *divider)
             printf("Error, fread failed!\n");
             error_detect = TRUE;
             error_cause = ERROR_FREAD_FAIL;
-            fclose(divider->file_var.input_file);
-            fclose(divider->file_var.output_file);
         }
 
         divider->file_var.byte_written = fwrite(divider->buffer, 1, divider->file_var.byte_read, divider->file_var.output_file);
@@ -387,17 +383,14 @@ error_code divide_file(divider *divider)
             printf("Error, fwrite failed!\n");
             error_detect = TRUE;
             error_cause = ERROR_FWRITE_FAIL;
-            fclose(divider->file_var.input_file);
-            fclose(divider->file_var.output_file);
         }
-
         // 출력 파일 닫기
         if ((!error_detect) && (fclose(divider->file_var.output_file) != F_SUCCESS))
         {
             printf("Error, fclose failed!\n");
             error_detect = TRUE;
             error_cause = ERROR_FCLOSE_FAIL;
-        }
+        }  
     }
 
     // 입력 파일 닫기
@@ -408,7 +401,20 @@ error_code divide_file(divider *divider)
         error_cause = ERROR_FCLOSE_FAIL;
     }
 
-    return error_cause;
+    // 에러가 발생했을 경우 처리 (error_detect가 TRUE일 때)
+    if (error_detect)
+    {
+        // 파일이 열려있으면 닫기
+        if (divider->file_var.input_file != NULL)
+        {
+            fclose(divider->file_var.input_file);
+        }
+        if (divider->file_var.output_file != NULL)
+        {
+            fclose(divider->file_var.output_file);
+        }
+    }
+    return error_cause;    
 }
 
 // 메모리 해제
