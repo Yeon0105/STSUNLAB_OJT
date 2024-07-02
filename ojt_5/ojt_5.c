@@ -423,16 +423,19 @@ void memory_free(divider *divider)
     if (divider->file_var.file_name != NULL)
     {
         free(divider->file_var.file_name);
+        divider->file_var.file_name = NULL; // 다른 함수에서 재사용 가능성 있으므로, 조건문 끝나고도 null로 설정 필요 (초기화 해주기)
     }
 
     if (divider->file_var.file_ext != NULL)
     {
         free(divider->file_var.file_ext);
+        divider->file_var.file_ext = NULL; // 다른 함수에서 재사용 가능성 있으므로, 조건문 끝나고도 null로 설정 필요 (초기화 해주기)
     }
 
     if (divider->buffer != NULL)
     {
         free(divider->buffer);
+        divider->buffer = NULL;            // 다른 함수에서 재사용 가능성 있으므로, 조건문 끝나고도 null로 설정 필요 (초기화 해주기)
     }
 }
 
